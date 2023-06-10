@@ -1,5 +1,5 @@
-using Dates, DataFrames, CSV, Plots, MLJ
-using ScikitLearn.CrossValidation: train_test_split
+using Dates, DataFrames, CSV, Plots, MLJ, MLJScikitLearnInterface, Metrics
+LinearRegressor = @load LinearRegressor pkg=MLJScikitLearnInterface
 
 filepath = "C:/Users/sethl/OneDrive/Desktop/Calibration-of-LoRa-Nodes-using-Machine-Learning-main/calibrate.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
@@ -33,7 +33,7 @@ for i in col_name
     end
 end
 
-#Dictionary
+# Dictionary
 
 grimm = Dict{String, DataFrame}()
 for i in y_grimm
@@ -46,26 +46,74 @@ end
 Palas = Dict{String, DataFrame}()
 for i in y_Palas
     Palas_cols = push!(x, i)
-    Palas[replace(i, "_Palas" => "")] = df[!, Palas_cols]
+    Palas[replace(i, "Palas" => "")] = df[!, Palas_cols]
     pop!(x)
 end
+
+# Remove non-PM variables from Palas
+Palas_delete = ["pressureh", "humidity"]
+Palas = delete!(Palas, Palas_delete)
+
+
+#----------------------------------Supervised Learning-----------------------------------------------# 
+# ---------------------------Grimm Data-----------------------------------# 
 
 # Partition data for training and testing
 # In this for loop, k = key and v = value
 
 for (k,v) in grimm
 
-    X = select(grimm[k], Not(k * "_grimm"))
-    y = select(grimm[k], k * "_grimm")
-    (X_train, X_test), (y_train, y_test) = partition((X,y), 0.8, multi=true)
+    X = DataFrames.select(grimm[k], Not(k * "_grimm"))
+    y = DataFrames.select(grimm[k], k * "_grimm")
+    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
+
+    #=
     println("x train " * string(size(X_train)))
     println("x test " * string(size(X_test)))
     println("y train " * string(size(y_train)))
     println("y test" * string(size(y_test)))
+    =#
+   
 
-end     
+    # Linear Regression
+    model = LinearRegressor()
+    lm = machine(model, X_train[!, Not("dateTime")], vec(Matrix(y_train)))
+    MLJ.fit!(lm)
+    predict_train = MLJ.predict(lm, X_train[!, Not("dateTime")])
+    predict_test = MLJ.predict(lm, X_test[!, Not("dateTime")])
+    print("test r2 value for " * k * " = " * string(r2_score(predict_test, Matrix(y_test))))
 
-#----------------------------------Supervised Learning-----------------------------------------------# 
+    # Histogram
+
+end
+
+# ---------------------------Palas Data-----------------------------------# 
+
+# Partition data for training and testing
+# In this for loop, k = key and v = value
+
+println("--------------Palas Data---------------")
+for (k,v) in Palas
+    
+    X = DataFrames.select(Palas[k], Not(k * "Palas"))
+    y = DataFrames.select(Palas[k], k * "Palas")
+    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
+    
+    #=
+    println("x train " * string(size(X_train)))
+    println("x test " * string(size(X_test)))
+    println("y train " * string(size(y_train)))
+    println("y test" * string(size(y_test)))
+    =#
+   
+    # Linear Regression
+    model = LinearRegressor()
+    lm = machine(model, X_train[!, Not("dateTime")], vec(Matrix(y_train)))
+    MLJ.fit!(lm)
+    predict_train = MLJ.predict(lm, X_train[!, Not("dateTime")])
+    predict_test = MLJ.predict(lm, X_test[!, Not("dateTime")])
+    print("test r2 value for " * k * " = " * string(r2_score(predict_test, Matrix(y_test))))
 
 
-# microgram/meter cubed for pm
+
+end
