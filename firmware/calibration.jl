@@ -1,6 +1,6 @@
-using Dates, DataFrames, CSV, Plots, MLJ, MLJScikitLearnInterface, Metrics
+using Dates, DataFrames, CSV, MLJ, MLJScikitLearnInterface, Metrics, StatsPlots, Plots
 LinearRegressor = @load LinearRegressor pkg=MLJScikitLearnInterface
-
+gr()
 filepath = "C:/Users/sethl/OneDrive/Desktop/Calibration-of-LoRa-Nodes-using-Machine-Learning-main/calibrate.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
 
@@ -61,6 +61,7 @@ Palas = delete!(Palas, Palas_delete)
 # Partition data for training and testing
 # In this for loop, k = key and v = value
 
+println("--------------Grimm Data---------------")
 for (k,v) in grimm
 
     X = DataFrames.select(grimm[k], Not(k * "_grimm"))
@@ -78,12 +79,34 @@ for (k,v) in grimm
     # Linear Regression
     model = LinearRegressor()
     lm = machine(model, X_train[!, Not("dateTime")], vec(Matrix(y_train)))
-    MLJ.fit!(lm)
+    MLJ.fit!(lm, verbosity = 0)
     predict_train = MLJ.predict(lm, X_train[!, Not("dateTime")])
     predict_test = MLJ.predict(lm, X_test[!, Not("dateTime")])
-    print("test r2 value for " * k * " = " * string(r2_score(predict_test, Matrix(y_test))))
+    r2_score_train = r2_score(predict_train, Matrix(y_train))
+    r2_score_test = r2_score(predict_test, Matrix(y_test))
+    println("test r2 value for " * k * " = " * string(r2_score_test))
 
     # Histogram
+    error_train = Matrix(y_train) - predict_train
+    error_test = Matrix(y_test) - predict_test
+    bin_range = range(-10, 10, length=100)
+    #display(histogram(error_train, label="train", bins=bin_range, color="green"))
+    #display(histogram(error_test, label="test", bins=bin_range, color="red"))
+
+    # Bar Graph comparison
+    compare_data = hcat(Matrix(y_test)[1:20],predict_test[1:20])
+    group_num = repeat(["Actual", "Predicted"], inner = 20)
+    nam = repeat(1:20, outer = 2)
+    #display(groupedbar(nam, compare_data, group = group_num, ylabel = k, xlabel = "Test Groups",
+    #title = "Comparison between actual vs predicted test values"))
+
+    # Scatter Plots, Error histograms MSE, RMSE, Time Series
+    train_label = "Training Data R² = " * string(r2_score_train)
+    test_label = "Testing Data R² = " * string(r2_score_test)
+    p = plot(Matrix(y_train), Matrix(y_train), seriestype=:line, linewidth = 2, color = "blue", label = "1:1", title = "Scatter plot for " * k, xlabel = "Actual " * k, ylabel = "Estimated " * k)
+    p = plot!(Matrix(y_train), predict_train, seriestype=:scatter, color = "red", label = train_label)
+    p = plot!(Matrix(y_test), predict_test, seriestype=:scatter, color = "green", label = test_label)
+    display(p)
 
 end
 
@@ -109,11 +132,12 @@ for (k,v) in Palas
     # Linear Regression
     model = LinearRegressor()
     lm = machine(model, X_train[!, Not("dateTime")], vec(Matrix(y_train)))
-    MLJ.fit!(lm)
+    MLJ.fit!(lm, verbosity = 0)
     predict_train = MLJ.predict(lm, X_train[!, Not("dateTime")])
     predict_test = MLJ.predict(lm, X_test[!, Not("dateTime")])
-    print("test r2 value for " * k * " = " * string(r2_score(predict_test, Matrix(y_test))))
-
+    r2_score_train = r2_score(predict_train, Matrix(y_train))
+    r2_score_test = r2_score(predict_test, Matrix(y_test))
+    println("test r2 value for " * k * " = " * string(r2_score_test))
 
 
 end
