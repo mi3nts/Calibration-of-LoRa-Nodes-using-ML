@@ -1,8 +1,17 @@
-using Dates, DataFrames, CSV, MLJ, MLJScikitLearnInterface, Metrics, StatsPlots, Plots
-LinearRegressor = @load LinearRegressor pkg=MLJScikitLearnInterface
+using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures
 gr()
+
 filepath = "C:/Users/sethl/OneDrive/Desktop/Calibration-of-LoRa-Nodes-using-Machine-Learning-main/calibrate.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
+
+#include functions from models file
+include("models/LinearRegression.jl")
+include("models/NeuralNetworkRegression.jl")
+include("models/SVRRegression.jl")
+include("models/GaussianProcessRegression.jl")
+include("models/DecisionTreeRegression.jl")
+include("models/RandomForestRegression.jl")
+
 
 #variables
 y_grimm = []
@@ -13,8 +22,8 @@ x = []
 df.dateTime = map(x -> strip(split(x, '+')[1]), df.dateTime)
 df.dateTime = DateTime.(df.dateTime, "dd/mm/yyyy HH:MM:SS")
 for col in names(df)
-    if eltype(df[!, col]) == Int64
-        df[!, col] = float(df[!, col])
+    if eltype(df[!, col]) == Float64 || eltype(df[!, col]) == Int64
+        df[!, col] = convert.(Float32, df[!, col])
     end
 end
 
@@ -52,7 +61,9 @@ end
 
 # Remove non-PM variables from Palas
 Palas_delete = ["pressureh", "humidity"]
-Palas = delete!(Palas, Palas_delete)
+for key in Palas_delete
+    global Palas = delete!(Palas, key)
+end
 
 
 #----------------------------------Supervised Learning-----------------------------------------------# 
@@ -66,47 +77,32 @@ for (k,v) in grimm
 
     X = DataFrames.select(grimm[k], Not(k * "_grimm"))
     y = DataFrames.select(grimm[k], k * "_grimm")
-    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
+    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=124, 0.8, multi=true)
 
-    #=
+    #= verify size of training and testing data
     println("x train " * string(size(X_train)))
     println("x test " * string(size(X_test)))
     println("y train " * string(size(y_train)))
     println("y test" * string(size(y_test)))
     =#
-   
 
-    # Linear Regression
-    model = LinearRegressor()
-    lm = machine(model, X_train[!, Not("dateTime")], vec(Matrix(y_train)))
-    MLJ.fit!(lm, verbosity = 0)
-    predict_train = MLJ.predict(lm, X_train[!, Not("dateTime")])
-    predict_test = MLJ.predict(lm, X_test[!, Not("dateTime")])
-    r2_score_train = r2_score(predict_train, Matrix(y_train))
-    r2_score_test = r2_score(predict_test, Matrix(y_test))
-    println("test r2 value for " * k * " = " * string(r2_score_test))
+    # Run linear regression function from LinearRegression.jl
+    #LinearRegression(k, X_train, y_train, X_test, y_test)
 
-    # Histogram
-    error_train = Matrix(y_train) - predict_train
-    error_test = Matrix(y_test) - predict_test
-    bin_range = range(-10, 10, length=100)
-    #display(histogram(error_train, label="train", bins=bin_range, color="green"))
-    #display(histogram(error_test, label="test", bins=bin_range, color="red"))
+    # Run neural network regression function from NeuralNetworkRegression.jl
+    #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test)
 
-    # Bar Graph comparison
-    compare_data = hcat(Matrix(y_test)[1:20],predict_test[1:20])
-    group_num = repeat(["Actual", "Predicted"], inner = 20)
-    nam = repeat(1:20, outer = 2)
-    #display(groupedbar(nam, compare_data, group = group_num, ylabel = k, xlabel = "Test Groups",
-    #title = "Comparison between actual vs predicted test values"))
+    # Run SVR function from SVR.jl
+    #SVR(k, X_train, y_train, X_test, y_test)
 
-    # Scatter Plots, Error histograms MSE, RMSE, Time Series
-    train_label = "Training Data R² = " * string(r2_score_train)
-    test_label = "Testing Data R² = " * string(r2_score_test)
-    p = plot(Matrix(y_train), Matrix(y_train), seriestype=:line, linewidth = 2, color = "blue", label = "1:1", title = "Scatter plot for " * k, xlabel = "Actual " * k, ylabel = "Estimated " * k)
-    p = plot!(Matrix(y_train), predict_train, seriestype=:scatter, color = "red", label = train_label)
-    p = plot!(Matrix(y_test), predict_test, seriestype=:scatter, color = "green", label = test_label)
-    display(p)
+    # Run Gaussian Process regression function from GaussianProcessRegressor.jl
+    #GaussianProcessRegression(k, X_train, y_train, X_test, y_test)
+
+    # Run Decision Tree function from DecisionTreeRegression.jl
+    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test)
+
+    # Run Random Forest Tree function from RandomForestRegression.jl
+    #RandomForestRegression(k, X_train, y_train, X_test, y_test)
 
 end
 
@@ -122,22 +118,24 @@ for (k,v) in Palas
     y = DataFrames.select(Palas[k], k * "Palas")
     (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
     
-    #=
-    println("x train " * string(size(X_train)))
-    println("x test " * string(size(X_test)))
-    println("y train " * string(size(y_train)))
-    println("y test" * string(size(y_test)))
-    =#
-   
-    # Linear Regression
-    model = LinearRegressor()
-    lm = machine(model, X_train[!, Not("dateTime")], vec(Matrix(y_train)))
-    MLJ.fit!(lm, verbosity = 0)
-    predict_train = MLJ.predict(lm, X_train[!, Not("dateTime")])
-    predict_test = MLJ.predict(lm, X_test[!, Not("dateTime")])
-    r2_score_train = r2_score(predict_train, Matrix(y_train))
-    r2_score_test = r2_score(predict_test, Matrix(y_test))
-    println("test r2 value for " * k * " = " * string(r2_score_test))
+
+    # Run linear regression function from LinearRegression.jl
+    #LinearRegression(k, X_train, y_train, X_test, y_test)
+
+    # Run neural network regression function from NeuralNetworkRegression.jl
+    #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test)
+
+    # Run SVR function from SVR.jl
+    #SVR(k, X_train, y_train, X_test, y_test)
+
+    # Run Gaussian Process regression function from GaussianProcessRegressor.jl
+    #GaussianProcessRegression(k, X_train, y_train, X_test, y_test)
+
+    # Run Decision Tree function from DecisionTreeRegression.jl
+    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test)
+
+    # Run Random Forest Tree function from RandomForestRegression.jl
+    RandomForestRegression(k, X_train, y_train, X_test, y_test)
 
 
 end
