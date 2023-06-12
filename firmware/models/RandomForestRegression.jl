@@ -33,4 +33,14 @@ function RandomForestRegression(k, X_train, y_train, X_test, y_test)
     
     display(p)
 
+    # QQ Plots
+    #=
+    p = Plots.plot(qqplot(Normal, predict_train), title = "QQ Plot of Estimated Train Values", 
+    xlabel = "Normal Theoretical Quantiles", ylabel = "Sample Quantiles")
+    display(p)
+    p = Plots.plot(qqplot(Normal, predict_test), title = "QQ Plot of Estimated Test Values", 
+    xlabel = "Normal Theoretical Quantiles", ylabel = "Sample Quantiles")
+    display(p)
+    =#
+
 end

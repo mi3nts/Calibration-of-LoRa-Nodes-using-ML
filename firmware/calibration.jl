@@ -1,4 +1,4 @@
-using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures
+using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions
 gr()
 
 filepath = "C:/Users/sethl/OneDrive/Desktop/Calibration-of-LoRa-Nodes-using-Machine-Learning-main/calibrate.csv"
@@ -22,10 +22,19 @@ x = []
 df.dateTime = map(x -> strip(split(x, '+')[1]), df.dateTime)
 df.dateTime = DateTime.(df.dateTime, "dd/mm/yyyy HH:MM:SS")
 for col in names(df)
+    if eltype(df[!, col]) == Int64
+        df[!, col] = float(df[!, col])
+    end
+end
+print(describe(df))
+#Converts all data in the dataframe to Float32 if the model requires it
+#=
+for col in names(df)
     if eltype(df[!, col]) == Float64 || eltype(df[!, col]) == Int64
         df[!, col] = convert.(Float32, df[!, col])
     end
 end
+=#
 
 #fill arrays with column names from the dataframe
 col_name = names(df)
