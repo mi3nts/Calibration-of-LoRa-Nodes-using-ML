@@ -87,7 +87,7 @@ end
 # ---------------------------Grimm Data-----------------------------------# 
 
 # Partition data for training and testing
-# In this for loop, k = key and v = value
+# In this for loop, k = key and v = value. This loops over every grimm value type (like pm1) to be trained on
 
 println("--------------Grimm Data---------------")
 for (k,v) in grimm
@@ -102,45 +102,7 @@ for (k,v) in grimm
     wholedata = grimm[k]
     wholedata = wholedata[!, Not("dateTime")]
 
-
-    # Run linear regression function from LinearRegression.jl
-    #LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
-
-    # Run neural network regression function from NeuralNetworkRegression.jl
-    #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
-
-    # Run SVR function from SVR.jl
-    #SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
-
-    # Run Gaussian Process regression function from GaussianProcessRegressor.jl
-    #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
-
-    # Run Decision Tree function from DecisionTreeRegression.jl
-    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
-
-    # Run Random Forest Tree function from RandomForestRegression.jl
-    RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
-
-end
-
-# ---------------------------Palas Data-----------------------------------# 
-
-# Partition data for training and testing
-# In this for loop, k = key and v = value
-
-println("--------------Palas Data---------------")
-for (k,v) in Palas
-    
-    #setting up data to be trained and tested on
-    X = DataFrames.select(Palas[k], Not(k * "Palas"))
-    X = X[!, Not("dateTime")]
-    y = DataFrames.select(Palas[k], k * "Palas")
-    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
-
-    #wholedata is used for feature importance
-    wholedata = Palas[k]
-    wholedata = wholedata[!, Not("dateTime")]
-    
+    #--------------------------Regression Functions--------------------------#
 
     # Run linear regression function from LinearRegression.jl
     #LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
@@ -159,6 +121,46 @@ for (k,v) in Palas
 
     # Run Random Forest Tree function from RandomForestRegression.jl
     #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
+
+end
+
+# ---------------------------Palas Data-----------------------------------# 
+
+# Partition data for training and testing
+# In this for loop, k = key and v = value. This loops over every Palas type (like pm4) to be trained on
+
+println("--------------Palas Data---------------")
+for (k,v) in Palas
+    
+    #setting up data to be trained and tested on
+    X = DataFrames.select(Palas[k], Not(k * "Palas"))
+    X = X[!, Not("dateTime")]
+    y = DataFrames.select(Palas[k], k * "Palas")
+    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
+
+    #wholedata is used for feature importance
+    wholedata = Palas[k]
+    wholedata = wholedata[!, Not("dateTime")]
+    
+    #--------------------------Regression Functions--------------------------#
+
+    # Run linear regression function from LinearRegression.jl
+    #LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
+
+    # Run neural network regression function from NeuralNetworkRegression.jl
+    #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
+
+    # Run SVR function from SVR.jl
+    #SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
+
+    # Run Gaussian Process regression function from GaussianProcessRegressor.jl
+    #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
+
+    # Run Decision Tree function from DecisionTreeRegression.jl
+    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
+
+    # Run Random Forest Tree function from RandomForestRegression.jl
+    RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
 
 end

@@ -9,8 +9,14 @@ function GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedat
     MLJ.fit!(gpr, verbosity = 0)
     predict_train = MLJ.predict(gpr, X_train)
     predict_test = MLJ.predict(gpr, X_test)
+    
+    #Print r2, mse, and rmse values for test data
     #r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
     #println("Gaussian Process Regression: test r2 value for " * k * " = " * string(r2_score_test))
+    mse_test = round(mse(predict_test, Matrix(y_test)), digits=3)
+    println("Gaussian Process Regression: test mse value for " * k * " = " * string(mse_test))
+    rmse_test = sqrt(mse_test)
+    println("Gaussian Process Regression: test rmse value for " * k * " = " * string(rmse_test))
 
 
     # Calculating Feature Importance using the FeatureImportance Function from FeatureImportance.jl
