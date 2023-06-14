@@ -1,4 +1,4 @@
-LinearRegressor = @load LinearRegressor pkg=MLJScikitLearnInterface
+LinearRegressor = @load LinearRegressor pkg=MLJScikitLearnInterface verbosity = 0
 #gr()
 
 # Linear Regression Function

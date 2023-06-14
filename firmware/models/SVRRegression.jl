@@ -1,4 +1,4 @@
-SVMRegressor = @load SVMRegressor pkg=MLJScikitLearnInterface
+SVMRegressor = @load SVMRegressor pkg=MLJScikitLearnInterface verbosity = 0
 #gr()
 
 #EpsilonSVR function

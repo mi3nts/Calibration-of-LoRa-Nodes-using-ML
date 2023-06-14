@@ -1,4 +1,4 @@
-NeuralNetworkRegressor = @load NeuralNetworkRegressor pkg=BetaML
+NeuralNetworkRegressor = @load NeuralNetworkRegressor pkg=BetaML verbosity = 0
 #gr()
 
 #Neural Network Regression Function

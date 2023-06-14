@@ -1,8 +1,12 @@
-using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions
+using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions, ShapML
 gr()
 
+#Load in dataframe
 filepath = "C:/Users/sethl/OneDrive/Desktop/Calibration-of-LoRa-Nodes-using-Machine-Learning-main/calibrate.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
+
+#include plotting functions from PlotFunctions.jl
+include("PlotFunctions.jl")
 
 #include functions from models file
 include("models/LinearRegression.jl")
@@ -22,15 +26,15 @@ x = []
 df.dateTime = map(x -> strip(split(x, '+')[1]), df.dateTime)
 df.dateTime = DateTime.(df.dateTime, "dd/mm/yyyy HH:MM:SS")
 for col in names(df)
-    if eltype(df[!, col]) == Int64
+    if eltype(df[:, col]) == Int64  
         df[!, col] = float(df[!, col])
     end
 end
-print(describe(df))
-#Converts all data in the dataframe to Float32 if the model requires it
+
+#Converts all data in the dataframe to Float32 if the model (like Neural Network Regression) requires it
 #=
 for col in names(df)
-    if eltype(df[!, col]) == Float64 || eltype(df[!, col]) == Int64
+    if eltype(df[:, col]) == Float64 || eltype(df[:, col]) == Int64
         df[!, col] = convert.(Float32, df[!, col])
     end
 end
@@ -56,7 +60,7 @@ end
 grimm = Dict{String, DataFrame}()
 for i in y_grimm
     grimm_cols = push!(x, i)
-    grimm[replace(i, "_grimm" => "")]  = df[!, grimm_cols]
+    grimm[replace(i, "_grimm" => "")]  = df[:, grimm_cols]
     pop!(x)
 end
 
@@ -64,15 +68,16 @@ end
 Palas = Dict{String, DataFrame}()
 for i in y_Palas
     Palas_cols = push!(x, i)
-    Palas[replace(i, "Palas" => "")] = df[!, Palas_cols]
+    Palas[replace(i, "Palas" => "")] = df[:, Palas_cols]
     pop!(x)
 end
 
 # Remove non-PM variables from Palas
-Palas_delete = ["pressureh", "humidity"]
+Palas_delete = ["pressureh", "temperature", "humidity"]
 for key in Palas_delete
     global Palas = delete!(Palas, key)
 end
+
 
 
 #----------------------------------Supervised Learning-----------------------------------------------# 
@@ -88,12 +93,9 @@ for (k,v) in grimm
     y = DataFrames.select(grimm[k], k * "_grimm")
     (X_train, X_test), (y_train, y_test) = partition((X,y), rng=124, 0.8, multi=true)
 
-    #= verify size of training and testing data
-    println("x train " * string(size(X_train)))
-    println("x test " * string(size(X_test)))
-    println("y train " * string(size(y_train)))
-    println("y test" * string(size(y_test)))
-    =#
+    wholedata = grimm[k]
+    wholedata = wholedata[!, Not("dateTime")]
+
 
     # Run linear regression function from LinearRegression.jl
     #LinearRegression(k, X_train, y_train, X_test, y_test)
@@ -102,7 +104,7 @@ for (k,v) in grimm
     #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test)
 
     # Run SVR function from SVR.jl
-    #SVR(k, X_train, y_train, X_test, y_test)
+    #SVRRegression(k, X_train, y_train, X_test, y_test)
 
     # Run Gaussian Process regression function from GaussianProcessRegressor.jl
     #GaussianProcessRegression(k, X_train, y_train, X_test, y_test)
@@ -111,7 +113,7 @@ for (k,v) in grimm
     #DecisionTreeRegression(k, X_train, y_train, X_test, y_test)
 
     # Run Random Forest Tree function from RandomForestRegression.jl
-    #RandomForestRegression(k, X_train, y_train, X_test, y_test)
+    #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
 end
 
@@ -126,6 +128,9 @@ for (k,v) in Palas
     X = DataFrames.select(Palas[k], Not(k * "Palas"))
     y = DataFrames.select(Palas[k], k * "Palas")
     (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
+
+    wholedata = Palas[k]
+    wholedata = wholedata[!, Not("dateTime")]
     
 
     # Run linear regression function from LinearRegression.jl
@@ -135,7 +140,7 @@ for (k,v) in Palas
     #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test)
 
     # Run SVR function from SVR.jl
-    #SVR(k, X_train, y_train, X_test, y_test)
+    #SVRRegression(k, X_train, y_train, X_test, y_test)
 
     # Run Gaussian Process regression function from GaussianProcessRegressor.jl
     #GaussianProcessRegression(k, X_train, y_train, X_test, y_test)
@@ -144,7 +149,7 @@ for (k,v) in Palas
     #DecisionTreeRegression(k, X_train, y_train, X_test, y_test)
 
     # Run Random Forest Tree function from RandomForestRegression.jl
-    RandomForestRegression(k, X_train, y_train, X_test, y_test)
+    RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
 
 end

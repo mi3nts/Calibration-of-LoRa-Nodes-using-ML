@@ -1,4 +1,4 @@
-GaussianProcessRegressor = @load GaussianProcessRegressor pkg=MLJScikitLearnInterface
+GaussianProcessRegressor = @load GaussianProcessRegressor pkg=MLJScikitLearnInterface verbosity = 0
 #gr()
 
 # Gaussian Process Regression Function
