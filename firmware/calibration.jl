@@ -5,8 +5,9 @@ gr()
 filepath = "C:/Users/sethl/OneDrive/Desktop/Calibration-of-LoRa-Nodes-using-Machine-Learning-main/calibrate.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
 
-#include plotting functions from PlotFunctions.jl
+#include plotting functions from PlotFunctions.jl and Feature Importance function from FeatureImportance.jl
 include("PlotFunctions.jl")
+include("FeatureImportance.jl")
 
 #include functions from models file
 include("models/LinearRegression.jl")
@@ -22,7 +23,8 @@ y_grimm = []
 y_Palas = []
 x = []
 
-#cleaning data
+
+#Cleaning data. Converting all numeric values in dataframe into Float64.
 df.dateTime = map(x -> strip(split(x, '+')[1]), df.dateTime)
 df.dateTime = DateTime.(df.dateTime, "dd/mm/yyyy HH:MM:SS")
 for col in names(df)
@@ -40,6 +42,7 @@ for col in names(df)
 end
 =#
 
+
 #fill arrays with column names from the dataframe
 col_name = names(df)
 push!(x, "dateTime")
@@ -55,7 +58,7 @@ for i in col_name
     end
 end
 
-# Dictionary
+#Creating Dictionaries, where key is the value being measured, which is assigned to a dataframe with data from the LoRa Nodes
 
 grimm = Dict{String, DataFrame}()
 for i in y_grimm
@@ -89,31 +92,34 @@ end
 println("--------------Grimm Data---------------")
 for (k,v) in grimm
 
+    #setting up data to be trained and tested on
     X = DataFrames.select(grimm[k], Not(k * "_grimm"))
+    X = X[!, Not("dateTime")]
     y = DataFrames.select(grimm[k], k * "_grimm")
     (X_train, X_test), (y_train, y_test) = partition((X,y), rng=124, 0.8, multi=true)
 
+    #wholedata is used for feature importance
     wholedata = grimm[k]
     wholedata = wholedata[!, Not("dateTime")]
 
 
     # Run linear regression function from LinearRegression.jl
-    #LinearRegression(k, X_train, y_train, X_test, y_test)
+    #LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run neural network regression function from NeuralNetworkRegression.jl
-    #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test)
+    #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run SVR function from SVR.jl
-    #SVRRegression(k, X_train, y_train, X_test, y_test)
+    #SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Gaussian Process regression function from GaussianProcessRegressor.jl
-    #GaussianProcessRegression(k, X_train, y_train, X_test, y_test)
+    #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Decision Tree function from DecisionTreeRegression.jl
-    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test)
+    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Random Forest Tree function from RandomForestRegression.jl
-    #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
 end
 
@@ -125,31 +131,34 @@ end
 println("--------------Palas Data---------------")
 for (k,v) in Palas
     
+    #setting up data to be trained and tested on
     X = DataFrames.select(Palas[k], Not(k * "Palas"))
+    X = X[!, Not("dateTime")]
     y = DataFrames.select(Palas[k], k * "Palas")
     (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
 
+    #wholedata is used for feature importance
     wholedata = Palas[k]
     wholedata = wholedata[!, Not("dateTime")]
     
 
     # Run linear regression function from LinearRegression.jl
-    #LinearRegression(k, X_train, y_train, X_test, y_test)
+    #LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run neural network regression function from NeuralNetworkRegression.jl
-    #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test)
+    #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run SVR function from SVR.jl
-    #SVRRegression(k, X_train, y_train, X_test, y_test)
+    #SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Gaussian Process regression function from GaussianProcessRegressor.jl
-    #GaussianProcessRegression(k, X_train, y_train, X_test, y_test)
+    #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Decision Tree function from DecisionTreeRegression.jl
-    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test)
+    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Random Forest Tree function from RandomForestRegression.jl
-    RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
 
 end

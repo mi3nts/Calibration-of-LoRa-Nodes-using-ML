@@ -18,7 +18,7 @@ function PlotHistogram(y_test, predict_test, k, type)
 
     error_test = Matrix(y_test) - predict_test
     bin_range = range(-10, 10, length=60)
-    display(histogram(error_test, label=plot_text * " Data", bins=bin_range, color=color, title="\nDifference between Actual and Predicted " * k * " Values",
+    display(histogram(error_test, label=plot_text * " Data", bins=bin_range, color=color, title="\nError between Actual & Predicted " * k * " Values",
     xlabel="(Actual - Predicted) Value", ylabel="Frequency"))
 
 end
@@ -40,7 +40,7 @@ function PlotBarComparison(y_test, predict_test, k, type)
     group_num = repeat(["Actual", "Predicted"], inner = 9)
     nam = repeat("G" .* string.(1:9), outer = 2)
     display(groupedbar(nam, compare_data, group = group_num, ylabel = "\n" * k * " values", xlabel = "Groups",
-    title = plot_text * " Data: Actual vs Predicted " * k * "Values"))
+    title = "\n" * plot_text * " Data: Actual vs Predicted " * k * " Values"))
 
 end
 
@@ -72,16 +72,19 @@ function PlotQQ(predict_test, k, type)
         println("Improper type was entered. Specify either train or test.")
         return nothing
     end
-    p = Plots.plot(qqplot(Normal, predict_test), title = "QQ Plot of Estimated " * plot_text * k * " Values", 
+
+    p = Plots.plot(qqplot(Normal, predict_test), title = "\n" * plot_text * "Data: QQ Plot of Estimated " * k * " Values", 
     xlabel = "Normal Theoretical Quantiles", ylabel = "Sample Quantiles")
     display(p)
+
 end
 
 # Plotting Feature importance
 function PlotFeatureImportance(data_plot, k)
-    
+
     p = Plots.bar(data_plot[:, :mean_effect], title="\nFeature Importance for " * k,
     xticks=(1:17,data_plot[:, :feature_name]), bottom_margin=10mm, xrotation=90, 
     ylabel="Relative Importance", legend = false)
     display(p)
+    
 end

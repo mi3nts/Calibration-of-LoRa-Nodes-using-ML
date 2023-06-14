@@ -1,18 +1,19 @@
 SVMRegressor = @load SVMRegressor pkg=MLJScikitLearnInterface verbosity = 0
-#gr()
 
 #EpsilonSVR function
 
-function SVRRegression(k, X_train, y_train, X_test, y_test)
+function SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
-    # Training Model
-    svr = machine(SVMRegressor(kernel="rbf"), X_train[!, Not("dateTime")], vec(Matrix(y_train)))
+    # Training model
+    svr = machine(SVMRegressor(), X_train, vec(Matrix(y_train)))
     MLJ.fit!(svr, verbosity = 0)
-    predict_train = MLJ.predict(svr, X_train[!, Not("dateTime")])
-    predict_test = MLJ.predict(svr, X_test[!, Not("dateTime")])
-    r2_score_train = r2_score(predict_train, Matrix(y_train))
-    r2_score_test = r2_score(predict_test, Matrix(y_test))
-    println("SVR: test r2 value for " * k * " = " * string(r2_score_test))
+    predict_train = MLJ.predict(svr, X_train)
+    predict_test = MLJ.predict(svr, X_test)
+    #r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
+    #println("SVR: test r2 value for " * k * " = " * string(r2_score_test))
+
+    #Calculating Feature Importance using the FeatureImportance Function from FeatureImportance.jl
+    data_plot = FeatureImportance(wholedata, k, svr)
 
     #LaTex Formatting
     if k[1:2] == "pm" && k != "pmTotal"
@@ -22,15 +23,12 @@ function SVRRegression(k, X_train, y_train, X_test, y_test)
         k = "pm" * latexstring("_{" * k[3:length(k)] * "}") * " (µg/m" * latexstring("^{3}") * ")"
     end
 
-    # Scatter Plots 
-    train_label = "Training Data R² = " * string(r2_score_train)
-    test_label = "Testing Data R² = " * string(r2_score_test)
-    p = Plots.plot(Matrix(y_train), Matrix(y_train), seriestype=:line, linewidth = 2, color = "blue", label = "1:1",
-    xlabel = "Actual " * k, ylabel = "\nEstimated " * k)
-    p = Plots.plot!(Matrix(y_train), predict_train, seriestype=:scatter, color = "red", label = train_label)
-    p = Plots.plot!(Matrix(y_test), predict_test, seriestype=:scatter, color = "green", label = test_label)
-    p = Plots.title!("\nSVR Scatter plot for " * k)
-    
-    display(p)
+    #Plotting Functions, "test" will plot the test data, whereas "train" will plot the train data.
+    #Only PlotScatter does not use "train" or "test"
+    PlotHistogram(y_test, predict_test, k, "test")
+    PlotBarComparison(y_test, predict_test, k, "test")
+    PlotScatter(y_train, y_test, predict_train, predict_test, k)
+    PlotQQ(predict_test, k, "test")
+    PlotFeatureImportance(data_plot, k)
 
 end
