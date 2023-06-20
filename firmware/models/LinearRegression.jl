@@ -15,7 +15,7 @@ function LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
     #println("Linear Regression: test r2 value for " * k * " = " * string(r2_score_test))
     mse_test = round(mse(predict_test, Matrix(y_test)), digits=3)
     println("Linear Regression: test mse value for " * k * " = " * string(mse_test))
-    rmse_test = sqrt(mse_test)
+    rmse_test = round(sqrt(mse_test), digits=3)
     println("Linear Regression: test rmse value for " * k * " = " * string(rmse_test))
 
 

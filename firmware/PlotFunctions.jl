@@ -82,7 +82,7 @@ end
 # Plotting Feature importance
 function PlotFeatureImportance(data_plot, k)
 
-    p = Plots.bar(data_plot[:, :mean_effect], title="\nFeature Importance for " * k,
+    p = Plots.bar(data_plot[:, :relative_importance], title="\nFeature Importance for " * k,
     xticks=(1:17,data_plot[:, :feature_name]), bottom_margin=10mm, xrotation=90, 
     ylabel="Relative Importance", legend = false)
     display(p)

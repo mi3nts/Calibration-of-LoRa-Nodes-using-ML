@@ -15,7 +15,7 @@ function SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
     #println("SVR: test r2 value for " * k * " = " * string(r2_score_test))
     mse_test = round(mse(predict_test, Matrix(y_test)), digits=3)
     println("SVR: test mse value for " * k * " = " * string(mse_test))
-    rmse_test = sqrt(mse_test)
+    rmse_test = round(sqrt(mse_test), digits=3)
     println("SVR: test rmse value for " * k * " = " * string(rmse_test))
 
     #Calculating Feature Importance using the FeatureImportance Function from FeatureImportance.jl
