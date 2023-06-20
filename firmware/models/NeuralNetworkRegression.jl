@@ -28,7 +28,9 @@ function NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
         if occursin(k, "pm2_5")
             k = replace(k, "_" => ".")
         end
-        k = "pm" * latexstring("_{" * k[3:length(k)] * "}") * " (µg/m" * latexstring("^{3}") * ")"
+        k = "PM" * latexstring("_{" * k[3:length(k)] * "}") * " (µg/m" * latexstring("^{3}") * ")"
+    elseif k == "pmTotal"
+        k = "Total PM"
     end
 
     #Plotting Functions, "test" will plot the test data, whereas "train" will plot the train data.

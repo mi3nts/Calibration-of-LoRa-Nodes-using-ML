@@ -18,8 +18,8 @@ function PlotHistogram(y_test, predict_test, k, type)
 
     error_test = Matrix(y_test) - predict_test
     bin_range = range(-10, 10, length=60)
-    display(histogram(error_test, label=plot_text * " Data", bins=bin_range, color=color, title="\nError between Actual & Predicted " * k * " Values",
-    xlabel="(Actual - Predicted) Value", ylabel="Frequency"))
+    display(histogram(error_test, label=plot_text * " Data", bins=bin_range, color=color, title= "\n" * plot_text * " Data: Estimation Error for " * k * " Values",
+    xlabel="(Actual - Predicted) " * k * " Value", ylabel="Frequency"))
 
 end
 
@@ -73,7 +73,7 @@ function PlotQQ(predict_test, k, type)
         return nothing
     end
 
-    p = Plots.plot(qqplot(Normal, predict_test), title = "\n" * plot_text * "Data: QQ Plot of Estimated " * k * " Values", 
+    p = Plots.plot(qqplot(Normal, predict_test), title = "\n" * plot_text * " Data: Q-Q Plot of Estimated " * k * " Values", 
     xlabel = "Normal Theoretical Quantiles", ylabel = "Sample Quantiles")
     display(p)
 
