@@ -9,8 +9,7 @@ function FeatureImportance(wholedata, k, trainedmodel)
     elseif findfirst(t -> occursin("_grimm", t), names(wholedata)) != nothing
         wholedata = select(wholedata, Not(k * "_grimm"))
     else
-        println("Error: DataFrame - wholedata - doesn't contain Palas or _grimm data")
-        return nothing
+        println("Warning: DataFrame - wholedata - doesn't contain Palas or _grimm data")
     end
 
     sample_size = 100
@@ -28,7 +27,7 @@ function FeatureImportance(wholedata, k, trainedmodel)
 
     #create relative importance
     data_plot.relative_importance = (data_plot.mean_effect)./maximum(data_plot.mean_effect) 
-    data_plot = sort!(data_plot, order(:relative_importance, rev = true))
+    data_plot = sort!(data_plot, order(:relative_importance))
 
     #returning data_plot to be plotted
     return data_plot

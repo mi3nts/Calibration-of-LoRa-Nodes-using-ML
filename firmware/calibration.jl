@@ -2,7 +2,7 @@ using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, 
 gr()
 
 #Load in dataframe
-filepath = "C:/Users/sethl/OneDrive/Desktop/Calibration-of-LoRa-Nodes-using-Machine-Learning-main/calibrate.csv"
+filepath = "C:/Users/sethl/OneDrive/Desktop/data/calibrate.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
 df = df[:, Not(:CO_loRa)]
 
@@ -137,11 +137,11 @@ for (k,v) in Palas
     X = X[!, Not("dateTime")]
     y = DataFrames.select(Palas[k], k * "Palas")
     (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
-
+    
     #wholedata is used for feature importance
     wholedata = Palas[k]
     wholedata = wholedata[!, Not("dateTime")]
-    
+
     #--------------------------Regression Functions--------------------------#
 
     # Run linear regression function from LinearRegression.jl

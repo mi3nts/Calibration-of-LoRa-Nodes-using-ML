@@ -45,7 +45,7 @@ function PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
     p = Plots.title!("\nScatter Plot for " * k)
     
     display(p)
-    savefig(p, "C:/Users/sethl/OneDrive/Desktop/SethRepo/firmware/plotimages/scatterplot" * kcopy)
+    savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/scatterplot" * kcopy)
 
 end
 
@@ -56,8 +56,8 @@ function PlotQQ(y_test, predict_test, k, kcopy)
     xlabel = "Actual Quantile", ylabel = "Estimated Quantile")
     #p = Plots.plot!(quantile(vec(Matrix(y_test)), [0, 0.25, 0.5, 0.75, 1]), quantile(predict_test, [0, 0.25, 0.5, 0.75, 1]), seriestype=:scatter, color = "red")
     display(p)
-    savefig(p, "C:/Users/sethl/OneDrive/Desktop/SethRepo/firmware/plotimages/QQ-Plot" * kcopy)
-
+    savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/QQ-Plot" * kcopy)
+    #print(p[1][1][:x])
 end
 
 # Plotting Feature importance
@@ -75,11 +75,14 @@ function PlotFeatureImportance(data_plot, k, kcopy)
     data_plot.feature_name = replace.(data_plot.feature_name, "10" => latexstring("_{10}"))
     data_plot.feature_name = replace.(data_plot.feature_name, "P1" => "PM" * latexstring("_{2.5}") * "~" * "PM" * latexstring("_{10}"))
     data_plot.feature_name = replace.(data_plot.feature_name, "P2" => "PM" * latexstring("_{10}"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "Temperature" => "Temperature" * latexstring("_{}"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "Pressure" => "Pressure" * latexstring("_{}"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "Humidity" => "Humidity" * latexstring("_{}"))
 
     p = Plots.bar(data_plot[:, :relative_importance], title="\nFeature Importance for " * k,
     yticks=(1:16,data_plot[:, :feature_name]), bottom_margin=0mm, 
     xlabel="Relative Importance", legend = false, orientation=:h, xlims=(-0.01, 1.01))
     display(p)
-    savefig(p, "C:/Users/sethl/OneDrive/Desktop/SethRepo/firmware/plotimages/featureimportance" * kcopy)
+    savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/featureimportance" * kcopy)
     
 end
