@@ -11,8 +11,8 @@ function LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
     predict_test = MLJ.predict(lm, X_test)
 
     #Print r2, mse, and rmse values for test data
-    #r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
-    #println("Linear Regression: test r2 value for " * k * " = " * string(r2_score_test))
+    r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
+    println("Linear Regression: test r2 value for " * k * " = " * string(r2_score_test))
     mse_test = round(mse(predict_test, Matrix(y_test)), digits=3)
     println("Linear Regression: test mse value for " * k * " = " * string(mse_test))
     rmse_test = round(sqrt(mse_test), digits=3)
@@ -22,6 +22,8 @@ function LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
     # Calculating Feature Importance using the FeatureImportance Function from FeatureImportance.jl
     data_plot = FeatureImportance(wholedata, k, lm)
 
+    #copying the target variable name before changing latex Formatting
+    kcopy = k
 
     #LaTex Formatting
     if k[1:2] == "pm" && k != "pmTotal"
@@ -36,10 +38,10 @@ function LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
     #Plotting Functions, "test" will plot the test data, whereas "train" will plot the train data.
     #Only PlotScatter does not use "train" or "test"
     PlotHistogram(y_test, predict_test, k, "test")
-    PlotBarComparison(y_test, predict_test, k, "test")
-    PlotScatter(y_train, y_test, predict_train, predict_test, k)
-    PlotQQ(predict_test, k, "test")
-    PlotFeatureImportance(data_plot, k)
+    PlotBarComparison(y_test, predict_test, k)
+    PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
+    PlotQQ(y_test, predict_test, k, kcopy)
+    PlotFeatureImportance(data_plot, k, kcopy)
 
 
 end

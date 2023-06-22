@@ -4,12 +4,9 @@
 
 # Plotting Histogram - representing error between actual vs predicted values
 function PlotHistogram(y_test, predict_test, k, type)
-    plot_text = ""
     if lowercase(type) == "train" 
-        plot_text = "Train"
         color = "green"
     elseif lowercase(type) == "test"
-        plot_text = "Test"
         color = "red"
     else
         println("Improper type was entered. Specify either train or test.")
@@ -18,34 +15,24 @@ function PlotHistogram(y_test, predict_test, k, type)
 
     error_test = Matrix(y_test) - predict_test
     bin_range = range(-10, 10, length=60)
-    display(histogram(error_test, label=plot_text * " Data", bins=bin_range, color=color, title= "\n" * plot_text * " Data: Estimation Error for " * k * " Values",
+    display(histogram(error_test, label="Data", bins=bin_range, color=color, title= "\nEstimation Error for " * k * " Values",
     xlabel="(Actual - Predicted) " * k * " Value", ylabel="Frequency"))
 
 end
 
 # Plotting Bar Graph Comparison of Actual vs Predicted Values
-function PlotBarComparison(y_test, predict_test, k, type)
-    
-    plot_text = ""
-    if lowercase(type) == "train" 
-        plot_text = "Train"
-    elseif lowercase(type) == "test"
-        plot_text = "Test"
-    else
-        println("Improper type was entered. Specify either train or test.")
-        return nothing
-    end
+function PlotBarComparison(y_test, predict_test, k)
 
     compare_data = hcat(Matrix(y_test)[1:9],predict_test[1:9])
     group_num = repeat(["Actual", "Predicted"], inner = 9)
     nam = repeat("G" .* string.(1:9), outer = 2)
     display(groupedbar(nam, compare_data, group = group_num, ylabel = "\n" * k * " values", xlabel = "Groups",
-    title = "\n" * plot_text * " Data: Actual vs Predicted " * k * " Values"))
+    title = "\nActual vs Predicted " * k * " Values"))
 
 end
 
 # Plotting Scatter Plots 
-function PlotScatter(y_train, y_test, predict_train, predict_test, k)
+function PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
 
     r2_score_train = round(r2_score(predict_train, Matrix(y_train)), digits=3)
     r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
@@ -58,33 +45,41 @@ function PlotScatter(y_train, y_test, predict_train, predict_test, k)
     p = Plots.title!("\nScatter Plot for " * k)
     
     display(p)
+    savefig(p, "C:/Users/sethl/OneDrive/Desktop/SethRepo/firmware/plotimages/scatterplot" * kcopy)
+
 end
 
-# Plotting QQ Plots vs Normal Distribution
-function PlotQQ(predict_test, k, type)
-    
-    plot_text = ""
-    if lowercase(type) == "train" 
-        plot_text = "Train"
-    elseif lowercase(type) == "test"
-        plot_text = "Test"
-    else
-        println("Improper type was entered. Specify either train or test.")
-        return nothing
-    end
+# Plotting QQ Plots vs No3rmal Distribution
+function PlotQQ(y_test, predict_test, k, kcopy)
 
-    p = Plots.plot(qqplot(Normal, predict_test), title = "\n" * plot_text * " Data: Q-Q Plot of Estimated " * k * " Values", 
-    xlabel = "Normal Theoretical Quantiles", ylabel = "Sample Quantiles")
+    p = Plots.plot(qqplot(vec(Matrix(y_test)), predict_test), title = "\nQuantile-Quantile Plot for " * k, 
+    xlabel = "Actual Quantile", ylabel = "Estimated Quantile")
+    #p = Plots.plot!(quantile(vec(Matrix(y_test)), [0, 0.25, 0.5, 0.75, 1]), quantile(predict_test, [0, 0.25, 0.5, 0.75, 1]), seriestype=:scatter, color = "red")
     display(p)
+    savefig(p, "C:/Users/sethl/OneDrive/Desktop/SethRepo/firmware/plotimages/QQ-Plot" * kcopy)
 
 end
 
 # Plotting Feature importance
-function PlotFeatureImportance(data_plot, k)
+function PlotFeatureImportance(data_plot, k, kcopy)
+    #Format axis
+    data_plot.feature_name = replace.(data_plot.feature_name, "_" => " ")
+    data_plot.feature_name = replace.(data_plot.feature_name, "lpo" => "LPO")
+    data_plot.feature_name = replace.(data_plot.feature_name, "loRa" => "")
+    data_plot.feature_name = replace.(data_plot.feature_name, "conc" => "concentration")
+    data_plot.feature_name = replace.(data_plot.feature_name, "2" => latexstring("_2"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "3" => latexstring("_3"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "4" => latexstring("_4"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "5" => latexstring("_5"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "8" => latexstring("_8"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "10" => latexstring("_{10}"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "P1" => "PM" * latexstring("_{2.5}") * "~" * "PM" * latexstring("_{10}"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "P2" => "PM" * latexstring("_{10}"))
 
     p = Plots.bar(data_plot[:, :relative_importance], title="\nFeature Importance for " * k,
-    xticks=(1:17,data_plot[:, :feature_name]), bottom_margin=10mm, xrotation=90, 
-    ylabel="Relative Importance", legend = false)
+    yticks=(1:16,data_plot[:, :feature_name]), bottom_margin=0mm, 
+    xlabel="Relative Importance", legend = false, orientation=:h, xlims=(-0.01, 1.01))
     display(p)
+    savefig(p, "C:/Users/sethl/OneDrive/Desktop/SethRepo/firmware/plotimages/featureimportance" * kcopy)
     
 end

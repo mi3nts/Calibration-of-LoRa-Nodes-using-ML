@@ -4,6 +4,7 @@ gr()
 #Load in dataframe
 filepath = "C:/Users/sethl/OneDrive/Desktop/Calibration-of-LoRa-Nodes-using-Machine-Learning-main/calibrate.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
+df = df[:, Not(:CO_loRa)]
 
 #include plotting functions from PlotFunctions.jl and Feature Importance function from FeatureImportance.jl
 include("PlotFunctions.jl")
@@ -15,7 +16,7 @@ include("models/NeuralNetworkRegression.jl")
 include("models/SVRRegression.jl")
 include("models/GaussianProcessRegression.jl")
 include("models/DecisionTreeRegression.jl")
-include("models/RandomForestRegression.jl")
+include("models/RandomForestRegression.jl") 
 
 
 #variables
@@ -41,7 +42,6 @@ for col in names(df)
     end
 end
 =#
-
 
 #fill arrays with column names from the dataframe
 col_name = names(df)
@@ -157,10 +157,10 @@ for (k,v) in Palas
     #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Decision Tree function from DecisionTreeRegression.jl
-    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Random Forest Tree function from RandomForestRegression.jl
-    RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
 
 end
