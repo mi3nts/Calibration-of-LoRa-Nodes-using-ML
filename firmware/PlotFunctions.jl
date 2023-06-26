@@ -86,3 +86,23 @@ function PlotFeatureImportance(data_plot, k, kcopy)
     savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/featureimportance" * kcopy)
     
 end
+
+function PlotTimeSeries(wholedata, model, k)
+    DateTime = vec(Matrix(select(wholedata, :dateTime)))
+
+    if findfirst(t -> occursin("Palas", t), names(wholedata)) != nothing
+        actualvalue = wholedata[:, k * "Palas"]
+        wholedata = select(wholedata, Not(k * "Palas"))
+        wholedata = select(wholedata, Not("dateTime"))
+    elseif findfirst(t -> occursin("_grimm", t), names(wholedata)) != nothing
+        actualvalue = wholedata[:, k * "_grimm"]
+        wholedata = select(wholedata, Not(k * "_grimm"))
+        wholedata = select(wholedata, Not("dateTime"))
+    else
+        println("Warning: DataFrame - wholedata - doesn't contain Palas or _grimm data")
+    end
+
+    #estimatedvalue = MLJ.predict(model, wholedata)
+
+    
+end

@@ -1,4 +1,4 @@
-using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions, ShapML
+using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions, ShapML, MLBase
 gr()
 
 #Load in dataframe
@@ -10,7 +10,7 @@ df = df[:, Not(:CO_loRa)]
 include("PlotFunctions.jl")
 include("FeatureImportance.jl")
 
-#include functions from models file
+#include functions from models file 
 include("models/LinearRegression.jl")
 include("models/NeuralNetworkRegression.jl")
 include("models/SVRRegression.jl")
@@ -33,6 +33,7 @@ for col in names(df)
         df[!, col] = float(df[!, col])
     end
 end
+
 
 #Converts all data in the dataframe to Float32 if the model (like Neural Network Regression) requires it
 #=
@@ -93,14 +94,14 @@ println("--------------Grimm Data---------------")
 for (k,v) in grimm
 
     #setting up data to be trained and tested on
+    
     X = DataFrames.select(grimm[k], Not(k * "_grimm"))
     X = X[!, Not("dateTime")]
     y = DataFrames.select(grimm[k], k * "_grimm")
-    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=124, 0.8, multi=true)
+    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
 
-    #wholedata is used for feature importance
+    #wholedata is used for feature importance & time series
     wholedata = grimm[k]
-    wholedata = wholedata[!, Not("dateTime")]
 
     #--------------------------Regression Functions--------------------------#
 
@@ -129,7 +130,7 @@ end
 # Partition data for training and testing
 # In this for loop, k = key and v = value. This loops over every Palas type (like pm4) to be trained on
 
-println("--------------Palas Data---------------")
+#println("--------------Palas Data---------------")
 for (k,v) in Palas
     
     #setting up data to be trained and tested on
@@ -138,9 +139,8 @@ for (k,v) in Palas
     y = DataFrames.select(Palas[k], k * "Palas")
     (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
     
-    #wholedata is used for feature importance
+    #wholedata is used for feature importance & time series
     wholedata = Palas[k]
-    wholedata = wholedata[!, Not("dateTime")]
 
     #--------------------------Regression Functions--------------------------#
 
@@ -151,13 +151,13 @@ for (k,v) in Palas
     #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run SVR function from SVR.jl
-    #SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Gaussian Process regression function from GaussianProcessRegressor.jl
     #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Decision Tree function from DecisionTreeRegression.jl
-    DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Random Forest Tree function from RandomForestRegression.jl
     #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)

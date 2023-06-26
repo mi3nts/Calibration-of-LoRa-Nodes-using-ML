@@ -2,12 +2,12 @@
 #Use the PlotFeatureImportance Function from PlotFunctions.jl in order to plot the feature importance.
 
 function FeatureImportance(wholedata, k, trainedmodel)
-
+wholedata = DataFrames.select(wholedata, Not("dateTime"))
     #Used to clean the wholedata dataframe
     if findfirst(t -> occursin("Palas", t), names(wholedata)) != nothing
-        wholedata = select(wholedata, Not(k * "Palas"))
+        wholedata = DataFrames.select(wholedata, Not(k * "Palas"))
     elseif findfirst(t -> occursin("_grimm", t), names(wholedata)) != nothing
-        wholedata = select(wholedata, Not(k * "_grimm"))
+        wholedata = DataFrames.select(wholedata, Not(k * "_grimm"))
     else
         println("Warning: DataFrame - wholedata - doesn't contain Palas or _grimm data")
     end
