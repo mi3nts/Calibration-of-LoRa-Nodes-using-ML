@@ -1,8 +1,10 @@
-using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions, ShapML
+using Pkg
+Pkg.activate("D:/UTD/UTDSummer2023/Calibration-of-LoRa-Nodes-using-ML/")
+using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions, ShapML,ScikitLearn
 gr()
 
 #Load in dataframe
-filepath = "C:/Users/sethl/OneDrive/Desktop/Calibration-of-LoRa-Nodes-using-Machine-Learning-main/calibrate.csv"
+filepath = "D:/UTD/UTDSummer2023/Calibration-of-LoRa-Nodes-using-ML/data/calibrate.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
 
 #include plotting functions from PlotFunctions.jl and Feature Importance function from FeatureImportance.jl
@@ -130,18 +132,51 @@ end
 # In this for loop, k = key and v = value. This loops over every Palas type (like pm4) to be trained on
 
 println("--------------Palas Data---------------")
+
 for (k,v) in Palas
     
     #setting up data to be trained and tested on
     X = DataFrames.select(Palas[k], Not(k * "Palas"))
     X = X[!, Not("dateTime")]
     y = DataFrames.select(Palas[k], k * "Palas")
-    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
+    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.80, multi=true)
 
     #wholedata is used for feature importance
     wholedata = Palas[k]
     wholedata = wholedata[!, Not("dateTime")]
+    lm = machine(LinearRegressor(), X_train, vec(Matrix(y_train)))
+    MLJ.fit!(lm, verbosity = 0)
+    predict_train = MLJ.predict(lm, X_train)
+    predict_test = MLJ.predict(lm, X_test)
+
+
+#--------------------------Cross Validation--------------------------#
+    k_fold = 10
+    a = collect(MLBase.Kfold(size(X_train)[1], k_fold))
+    i= 1
+
+    for i in 1:5
+        row = a[i]
+        temp_X_train = X_train[row,:]
+        temp_y_train = y_train[row,:]
+
+        temp_X_test = X_train[setdiff(1:end, row),:]
+        temp_y_test = y_train[setdiff(1:end, row),:]
+        
+        lm = machine(LinearRegressor(), temp_X_train, vec(Matrix(temp_y_train)))
+        MLJ.fit!(lm, verbosity = 0)
+
+        temp_predict_y_train = MLJ.predict(lm, temp_X_train)
+        temp_predict_y_test = MLJ.predict(lm, temp_X_test)
     
+        temp_mse_test = round(mse(temp_predict_y_test, Matrix(temp_y_test)), digits=3)
+        #println("Linear Regression: test mse value for " * k * " = " * string(temp_mse_test))
+        temp_rmse_test = sqrt(temp_mse_test)
+        #println("Linear Regression: test rmse value for " * k * " = " * string(temp_rmse_test))
+        r2_score_test = round(r2_score(temp_predict_y_test, Matrix(temp_y_test)), digits=3)
+        println("R squared error for $k , fold $i is ",r2_score_test)
+    end
+
     #--------------------------Regression Functions--------------------------#
 
     # Run linear regression function from LinearRegression.jl
@@ -160,7 +195,7 @@ for (k,v) in Palas
     #DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Random Forest Tree function from RandomForestRegression.jl
-    RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
 
 end
