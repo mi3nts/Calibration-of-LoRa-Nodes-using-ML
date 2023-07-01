@@ -10,6 +10,12 @@ df = df[:, Not(:CO_loRa)]
 include("PlotFunctions.jl")
 include("FeatureImportance.jl")
 
+#include grid search
+include("GridSearch.jl")
+
+#include Kfold CSV
+include("KFoldCV.jl")
+
 #include functions from models file 
 include("models/LinearRegression.jl")
 include("models/NeuralNetworkRegression.jl")
@@ -130,7 +136,7 @@ end
 # Partition data for training and testing
 # In this for loop, k = key and v = value. This loops over every Palas type (like pm4) to be trained on
 
-#println("--------------Palas Data---------------")
+println("--------------Palas Data---------------")
 for (k,v) in Palas
     
     #setting up data to be trained and tested on
@@ -151,7 +157,7 @@ for (k,v) in Palas
     #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run SVR function from SVR.jl
-    SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    #SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Gaussian Process regression function from GaussianProcessRegressor.jl
     #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
@@ -160,7 +166,7 @@ for (k,v) in Palas
     #DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Random Forest Tree function from RandomForestRegression.jl
-    #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
 
 end

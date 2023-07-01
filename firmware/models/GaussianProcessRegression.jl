@@ -14,30 +14,12 @@ function GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedat
     k_fold = 5
     X = vcat(X_train, X_test)
     y = vcat(y_train, y_test)
-    a = collect(MLBase.Kfold(size(X)[1], k_fold))
-    i= 1
 
-    for i in 1:k_fold
-        row=a[i]
-        temp_X_train = X[row,:]
-        temp_y_train = y[row,:]
-
-        temp_X_test = X[setdiff(1:end, row),:]
-        temp_y_test = y[setdiff(1:end, row),:]
-        
-        gpr = machine(GaussianProcessRegressor(), temp_X_train, vec(Matrix(temp_y_train)))
-        MLJ.fit!(gpr, verbosity = 0)
-
-        temp_predict_y_train = MLJ.predict(gpr, temp_X_train)
-        temp_predict_y_test = MLJ.predict(gpr, temp_X_test)
+    #implement grid search
+    GridSearch(GaussianProcessRegressor(), X, y)
     
-        temp_mse_test = round(mse(temp_predict_y_test, Matrix(temp_y_test)), digits=3)
-        #println("Linear Regression: test mse value for " * k * " = " * string(temp_mse_test))
-        temp_rmse_test = sqrt(temp_mse_test)
-        #println("Linear Regression: test rmse value for " * k * " = " * string(temp_rmse_test))
-        r2_score_test = round(r2_score(temp_predict_y_test, Matrix(temp_y_test)), digits=3)
-        println("R squared error for $k , fold $i is ",r2_score_test)
-    end
+    #K-fold crossvalidatoin
+    KFoldCV(X, y, k_fold, k)
 
 
     #Print r2, mse, and rmse values for test data
@@ -70,11 +52,11 @@ function GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedat
 
     #Plotting Functions, "test" will plot the test data, whereas "train" will plot the train data.
     #Only PlotScatter does not use "train" or "test"
-    PlotHistogram(y_test, predict_test, k, "test")
-    PlotBarComparison(y_test, predict_test, k)
+    PlotHistogram(y_test, predict_test, k, kcopy)
+    #PlotBarComparison(y_test, predict_test, k, kcopy)
     PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
     PlotQQ(y_test, predict_test, k, kcopy)
     PlotFeatureImportance(data_plot, k, kcopy)
-
+    
 end
 

@@ -5,50 +5,42 @@ NeuralNetworkRegressor = @load NeuralNetworkRegressor pkg=BetaML verbosity = 0
 function NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Training Model
+    #=autotune with BetaML directly
+    nnr = BetaML.NeuralNetworkEstimator(autotune=true)
+    BetaML.fit!(nnr, Matrix(X_train), Matrix(y_train))
+    predict_train = BetaML.predict(nnr, Matrix(X_train))
+    predict_test = BetaML.predict(nnr, Matrix(MX_test))
+    =#
     nnr = machine(NeuralNetworkRegressor(), X_train, vec(Matrix(y_train)))
     MLJ.fit!(nnr, verbosity = 0)
     predict_train = MLJ.predict(nnr, X_train)
     predict_test = MLJ.predict(nnr, X_test)
+    
 
     # ------------------ Cross Validation ---------------------#
     k_fold = 5
     X = vcat(X_train, X_test)
     y = vcat(y_train, y_test)
-    a = collect(MLBase.Kfold(size(X)[1], k_fold))
-    i= 1
 
-    for i in 1:k_fold
-        row=a[i]
-        temp_X_train = X[row,:]
-        temp_y_train = y[row,:]
+    #implement grid search
+    GridSearch(NeuralNetworkRegressor(), X, y)
 
-        temp_X_test = X[setdiff(1:end, row),:]
-        temp_y_test = y[setdiff(1:end, row),:]
-        
-        nnr = machine(NeuralNetworkRegressor(), temp_X_train, vec(Matrix(temp_y_train)))
-        MLJ.fit!(nnr, verbosity = 0)
-
-        temp_predict_y_train = MLJ.predict(nnr, temp_X_train)
-        temp_predict_y_test = MLJ.predict(nnr, temp_X_test)
     
-        temp_mse_test = round(mse(temp_predict_y_test, Matrix(temp_y_test)), digits=3)
-        #println("Linear Regression: test mse value for " * k * " = " * string(temp_mse_test))
-        temp_rmse_test = sqrt(temp_mse_test)
-        #println("Linear Regression: test rmse value for " * k * " = " * string(temp_rmse_test))
-        r2_score_test = round(r2_score(temp_predict_y_test, Matrix(temp_y_test)), digits=3)
-        println("R squared error for $k , fold $i is ",r2_score_test)
-    end
+    #K-fold crossvalidatoin
+    KFoldCV(X, y, k_fold, k)
 
     #Print r2, mse, and rmse values for test data
+    #=
     r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
     println("Neural Network Regression: test r2 value for " * k * " = " * string(r2_score_test))
     mse_test = round(mse(predict_test, Matrix(y_test)), digits=3)
     println("Neural Network Regression: test mse value for " * k * " = " * string(mse_test))
     rmse_test = round(sqrt(mse_test), digits=3)
     println("Neural Network Regression: test rmse value for " * k * " = " * string(rmse_test))
-    
+    =#
 
     # Calculating Feature Importance using the FeatureImportance Function from FeatureImportance.jl
+    
     data_plot = FeatureImportance(wholedata, k, nnr)
 
     #copying the target variable name before changing latex Formatting
@@ -66,9 +58,10 @@ function NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     #Plotting Functions, "test" will plot the test data, whereas "train" will plot the train data.
     #Only PlotScatter does not use "train" or "test"
-    PlotHistogram(y_test, predict_test, k, "test")
-    PlotBarComparison(y_test, predict_test, k)
+    PlotHistogram(y_test, predict_test, k, kcopy)
+    #PlotBarComparison(y_test, predict_test, k, kcopy)
     PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
     PlotQQ(y_test, predict_test, k, kcopy)
     PlotFeatureImportance(data_plot, k, kcopy)
+    
 end

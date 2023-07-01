@@ -3,31 +3,26 @@
 
 
 # Plotting Histogram - representing error between actual vs predicted values
-function PlotHistogram(y_test, predict_test, k, type)
-    if lowercase(type) == "train" 
-        color = "green"
-    elseif lowercase(type) == "test"
-        color = "red"
-    else
-        println("Improper type was entered. Specify either train or test.")
-        return nothing
-    end
+function PlotHistogram(y_test, predict_test, k, kcopy)
 
     error_test = Matrix(y_test) - predict_test
     bin_range = range(-10, 10, length=60)
-    display(histogram(error_test, label="Data", bins=bin_range, color=color, title= "\nEstimation Error for " * k * " Values",
-    xlabel="(Actual - Predicted) " * k * " Value", ylabel="Frequency"))
+    p = histogram(error_test, label="Data", bins=bin_range, color="red", title= "\nEstimation Error for " * k * " Values",
+    xlabel="Error of " * k * " Value", ylabel="Frequency")
+    display(p)
+    savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/histogram" * kcopy)
 
 end
 
 # Plotting Bar Graph Comparison of Actual vs Predicted Values
-function PlotBarComparison(y_test, predict_test, k)
+function PlotBarComparison(y_test, predict_test, k, kcopy)
 
     compare_data = hcat(Matrix(y_test)[1:9],predict_test[1:9])
     group_num = repeat(["Actual", "Predicted"], inner = 9)
     nam = repeat("G" .* string.(1:9), outer = 2)
     display(groupedbar(nam, compare_data, group = group_num, ylabel = "\n" * k * " values", xlabel = "Groups",
     title = "\nActual vs Predicted " * k * " Values"))
+    savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/barcomparison" * kcopy)
 
 end
 
@@ -49,15 +44,23 @@ function PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
 
 end
 
-# Plotting QQ Plots vs No3rmal Distribution
+# Plotting QQ Plots of actual data quantiles vs estimated data quantiles
 function PlotQQ(y_test, predict_test, k, kcopy)
 
     p = Plots.plot(qqplot(vec(Matrix(y_test)), predict_test), title = "\nQuantile-Quantile Plot for " * k, 
     xlabel = "Actual Quantile", ylabel = "Estimated Quantile")
-    #p = Plots.plot!(quantile(vec(Matrix(y_test)), [0, 0.25, 0.5, 0.75, 1]), quantile(predict_test, [0, 0.25, 0.5, 0.75, 1]), seriestype=:scatter, color = "red")
+    y_test_quantile = quantile(vec(Matrix(y_test)), [0,0.25,0.5,0.75,1])
+    y_predict_quantile = quantile(predict_test, [0,0.25,0.5,0.75,1])
+    p = Plots.plot!(y_test_quantile, y_predict_quantile, seriestype=:scatter, color = "red", marker = :hexagon)
+
+    #plot quantile markers at 0, 0.25, 0.5, 0.75, and 1
+    for i in 1:5
+        p = Plots.annotate!(y_test_quantile[i] + p[1][1][:x][2]*0.022, y_predict_quantile[i] - p[1][1][:x][2]*0.01,
+        text(round(Int, 100*(i-1)/4), :red, :center, 9))
+    end
+
     display(p)
     savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/QQ-Plot" * kcopy)
-    #print(p[1][1][:x])
 end
 
 # Plotting Feature importance
@@ -74,7 +77,7 @@ function PlotFeatureImportance(data_plot, k, kcopy)
     data_plot.feature_name = replace.(data_plot.feature_name, "8" => latexstring("_8"))
     data_plot.feature_name = replace.(data_plot.feature_name, "10" => latexstring("_{10}"))
     data_plot.feature_name = replace.(data_plot.feature_name, "P1" => "PM" * latexstring("_{2.5}") * "~" * "PM" * latexstring("_{10}"))
-    data_plot.feature_name = replace.(data_plot.feature_name, "P2" => "PM" * latexstring("_{10}"))
+    data_plot.feature_name = replace.(data_plot.feature_name, "P" * latexstring("_2") => "PM" * latexstring("_{10}"))
     data_plot.feature_name = replace.(data_plot.feature_name, "Temperature" => "Temperature" * latexstring("_{}"))
     data_plot.feature_name = replace.(data_plot.feature_name, "Pressure" => "Pressure" * latexstring("_{}"))
     data_plot.feature_name = replace.(data_plot.feature_name, "Humidity" => "Humidity" * latexstring("_{}"))
