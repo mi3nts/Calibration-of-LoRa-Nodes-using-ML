@@ -75,7 +75,6 @@ for (counter, name) in enumerate(names(df))
     end
 end
 
-
 #groupby month and print out how which days of data are collected in each month
 df[!, :dateMonth] = Dates.month.(df.dateTime)
 for i in groupby(df, :dateMonth)
@@ -87,10 +86,10 @@ for i in groupby(df, :dateMonth)
             println(i[index, :dateTime])
         end
     end
-    =#
-    println(Dates.monthname(i[1, :dateTime]) * ": " .* string.(unique(Dates.day.(i.dateTime))))
-    #println(size(i))
-    #println(describe(i))
+    =#  
+    #println(Dates.monthname(i[1, :dateTime]) * ": " .* string.(unique(Dates.day.(i.dateTime))))
+    println(size(i))
+    println(describe(i))
 end
 
 

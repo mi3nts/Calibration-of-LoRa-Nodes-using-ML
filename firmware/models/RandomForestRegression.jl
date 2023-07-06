@@ -21,6 +21,9 @@ function RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
     #K-fold crossvalidatoin
     KFoldCV(X, y, k_fold, k)
 
+    #SuperLearner
+    SuperLearner(X_train, y_train, X_test, y_test)
+
     #Print r2, mse, and rmse values for test data
     #=
     r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)

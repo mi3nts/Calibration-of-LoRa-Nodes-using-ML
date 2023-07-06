@@ -23,6 +23,7 @@ include("models/SVRRegression.jl")
 include("models/GaussianProcessRegression.jl")
 include("models/DecisionTreeRegression.jl")
 include("models/RandomForestRegression.jl") 
+include("models/SuperLearner.jl")
 
 
 #variables
