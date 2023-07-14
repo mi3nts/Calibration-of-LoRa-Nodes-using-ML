@@ -62,6 +62,7 @@ function PalasData()
     #Check if GPS coordinates align with waterview building/location
 
     df.latitude .= round.(df.latitude, digits=3)
+    df.longitude .= round.(df.longitude, digits = 3)
 
     for (counter, name) in enumerate(names(df))
         if name == "latitude"

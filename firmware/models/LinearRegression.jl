@@ -5,21 +5,21 @@ LinearRegressor = @load LinearRegressor pkg=MLJScikitLearnInterface verbosity = 
 function LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Training model
-    lm = machine(LinearRegressor(), X_train, vec(Matrix(y_train)))
-    MLJ.fit!(lm, verbosity = 0)
-    predict_train = MLJ.predict(lm, X_train)
-    predict_test = MLJ.predict(lm, X_test)
-
+    model = machine(LinearRegressor(), X_train, vec(Matrix(y_train)))
+    MLJ.fit!(model, verbosity = 0)
+    predict_train = MLJ.predict(model, X_train)
+    predict_test = MLJ.predict(model, X_test)
+    
     # ------------------ Cross Validation ---------------------#
     k_fold = 5
     X = vcat(X_train, X_test)
     y = vcat(y_train, y_test)
 
     #implement grid search
-    GridSearch(LinearRegressor(), X, y)
+    #GridSearch(LinearRegressor(), X, y)
     
     #K-fold crossvalidatoin
-    KFoldCV(X, y, k_fold, k)
+    KFoldCV(X, y, k_fold, k, LinearRegressor())
 
     #Print r2, mse, and rmse values for test data
     #=
@@ -30,14 +30,15 @@ function LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
     rmse_test = round(sqrt(mse_test), digits=3)
     println("Linear Regression: test rmse value for " * k * " = " * string(rmse_test))
     =#
-
+    
     # Calculating Feature Importance using the FeatureImportance Function from FeatureImportance.jl
-    data_plot = FeatureImportance(wholedata, k, lm)
-
+    data_plot = FeatureImportance(wholedata, k, model)
+    
     #copying the target variable name before changing latex Formatting
     kcopy = k
-
+    
     #LaTex Formatting
+    
     if k[1:2] == "pm" && k != "pmTotal"
         if occursin(k, "pm2_5")
             k = replace(k, "_" => ".")
@@ -46,15 +47,15 @@ function LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
     elseif k == "pmTotal"
         k = "Total PM"
     end
+    
 
-    #Plotting Functions, "test" will plot the test data, whereas "train" will plot the train data.
-    #Only PlotScatter does not use "train" or "test"
+    #Plotting Functions
     PlotHistogram(y_test, predict_test, k, kcopy)
-    #PlotBarComparison(y_test, predict_test, k, kcopy)
+    PlotBarComparison(y_test, predict_test, k, kcopy)
     PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
     PlotQQ(y_test, predict_test, k, kcopy)
     PlotFeatureImportance(data_plot, k, kcopy)
-
+    
 
 end
 

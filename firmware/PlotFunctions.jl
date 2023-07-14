@@ -20,8 +20,9 @@ function PlotBarComparison(y_test, predict_test, k, kcopy)
     compare_data = hcat(Matrix(y_test)[1:9],predict_test[1:9])
     group_num = repeat(["Actual", "Predicted"], inner = 9)
     nam = repeat("G" .* string.(1:9), outer = 2)
-    display(groupedbar(nam, compare_data, group = group_num, ylabel = "\n" * k * " values", xlabel = "Groups",
-    title = "\nActual vs Predicted " * k * " Values"))
+    p = groupedbar(nam, compare_data, group = group_num, ylabel = "\n" * k * " values", xlabel = "Groups",
+    title = "\nActual vs Predicted " * k * " Values")
+    display(p)
     savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/barcomparison" * kcopy)
 
 end
@@ -31,13 +32,20 @@ function PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
 
     r2_score_train = round(r2_score(predict_train, Matrix(y_train)), digits=3)
     r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
-    train_label = "Training Data R² = " * string(r2_score_train)
-    test_label = "Testing Data R² = " * string(r2_score_test)
-    p = Plots.plot(Matrix(y_train), Matrix(y_train), seriestype=:line, linewidth = 2, color = "blue", label = "1:1",
-    xlabel = "Actual " * k, ylabel = "\nEstimated " * k)
-    p = Plots.plot!(Matrix(y_train), predict_train, seriestype=:scatter, color = "red", label = train_label)
-    p = Plots.plot!(Matrix(y_test), predict_test, seriestype=:scatter, color = "green", label = test_label)
-    p = Plots.title!("\nScatter Plot for " * k)
+    #train_label = "Training Data R² = " * string(r2_score_train)
+    #test_label = "Testing Data R² = " * string(r2_score_test)
+    p = scatterresult(vec(Matrix(y_train)), predict_train,
+                      vec(Matrix(y_test)), predict_test;
+                      xlabel="Actual " * k,
+                      ylabel="\nPredicted " * k,
+                      plot_title= "Scatter Plot Fit")
+                      
+    #old scatter plot code
+    #p = Plots.plot(Matrix(y_train), Matrix(y_train), seriestype=:line, linewidth = 2, color = "blue", label = "1:1",
+    #xlabel = "Actual " * k, ylabel = "\nEstimated " * k)
+    #p = Plots.plot!(Matrix(y_train), predict_train, seriestype=:scatter, color = "red", label = train_label)
+    #p = Plots.plot!(Matrix(y_test), predict_test, seriestype=:scatter, color = "green", label = test_label)
+    #p = Plots.title!("\nScatter Plot for " * k)
     
     display(p)
     savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/scatterplot" * kcopy)
@@ -83,7 +91,7 @@ function PlotFeatureImportance(data_plot, k, kcopy)
     data_plot.feature_name = replace.(data_plot.feature_name, "Humidity" => "Humidity" * latexstring("_{}"))
 
     p = Plots.bar(data_plot[:, :relative_importance], title="\nFeature Importance for " * k,
-    yticks=(1:16,data_plot[:, :feature_name]), bottom_margin=0mm, 
+    yticks=(1:nrows(data_plot), data_plot[:, :feature_name]), bottom_margin=0mm, 
     xlabel="Relative Importance", legend = false, orientation=:h, xlims=(-0.01, 1.01))
     display(p)
     savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/featureimportance" * kcopy)

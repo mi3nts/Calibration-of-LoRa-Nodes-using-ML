@@ -1,6 +1,6 @@
 # K fold cross Validation
 
-function KFoldCV(X, y, k_fold, k)
+function KFoldCV(X, y, k_fold, k, model)
     a = collect(MLBase.Kfold(size(X)[1], k_fold))
     i= 1
 
@@ -12,11 +12,11 @@ function KFoldCV(X, y, k_fold, k)
         temp_X_test = X[setdiff(1:end, row),:]
         temp_y_test = y[setdiff(1:end, row),:]
         
-        dtr = machine(DecisionTreeRegressor(), temp_X_train, vec(Matrix(temp_y_train)))
-        MLJ.fit!(dtr, verbosity = 0)
+        ml = machine(model, temp_X_train, vec(Matrix(temp_y_train)))
+        MLJ.fit!(ml, verbosity = 0)
 
-        temp_predict_y_train = MLJ.predict(dtr, temp_X_train)
-        temp_predict_y_test = MLJ.predict(dtr, temp_X_test)
+        temp_predict_y_train = MLJ.predict(ml, temp_X_train)
+        temp_predict_y_test = MLJ.predict(ml, temp_X_test)
     
         temp_mse_test = round(mse(temp_predict_y_test, Matrix(temp_y_test)), digits=3)
         #println("Linear Regression: test mse value for " * k * " = " * string(temp_mse_test))
