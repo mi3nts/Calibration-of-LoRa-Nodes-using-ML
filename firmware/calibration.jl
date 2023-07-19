@@ -1,5 +1,6 @@
 using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions, ShapML, MLBase
 using mintsML: scatterresult
+using StableRNGs
 gr()
 
 #Load in dataframe
@@ -40,7 +41,7 @@ for col in names(df)
 end
 
 
-#Converts all data in the dataframe to Float32 if the model (like Neural Network Regression) requires it
+#Converts all data in the dataframe to Float32 if the model prefers it
 #=
 for col in names(df)
     if eltype(df[:, col]) == Float64 || eltype(df[:, col]) == Int64
@@ -104,7 +105,7 @@ for (k,v) in grimm
     X = DataFrames.select(grimm[k], Not(k * "_grimm"))
     X = X[!, Not("dateTime")]
     y = DataFrames.select(grimm[k], k * "_grimm")
-    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
+    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=StableRNG(42), 0.8, multi=true)
 
     #wholedata is used for feature importance & time series
     wholedata = grimm[k]
@@ -143,7 +144,7 @@ for (k,v) in Palas
     X = DataFrames.select(Palas[k], Not(k * "Palas"))
     X = X[!, Not("dateTime")]
     y = DataFrames.select(Palas[k], k * "Palas")
-    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=123, 0.8, multi=true)
+    (X_train, X_test), (y_train, y_test) = partition((X,y), rng=StableRNG(42), 0.8, multi=true)
     
     #wholedata is used for feature importance & time series
     wholedata = Palas[k]

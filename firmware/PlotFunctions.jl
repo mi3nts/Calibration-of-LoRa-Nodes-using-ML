@@ -4,9 +4,9 @@
 
 # Plotting Histogram - representing error between actual vs predicted values
 function PlotHistogram(y_test, predict_test, k, kcopy)
-
+    
     error_test = Matrix(y_test) - predict_test
-    bin_range = range(-10, 10, length=60)
+    bin_range = range(quantile(vec(Matrix(y_test, 0.5))) * -1 * 0.75, quantile(vec(Matrix(y_test, 0.5))) * 0.75, length=60)
     p = histogram(error_test, label="Data", bins=bin_range, color="red", title= "\nEstimation Error for " * k * " Values",
     xlabel="Error of " * k * " Value", ylabel="Frequency")
     display(p)
