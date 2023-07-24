@@ -1,12 +1,12 @@
 using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions, ShapML, MLBase
 using mintsML: scatterresult
-using StableRNGs
+using StableRNGs, Distances, Flux
 gr()
 
 #Load in dataframe
-filepath = "C:/Users/sethl/OneDrive/Desktop/data/small_df.csv"
+filepath = "C:/Users/sethl/OneDrive/Desktop/data/calibrate.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
-
+df = df[!, Not(:CO_loRa)]
 #include plotting functions from PlotFunctions.jl and Feature Importance function from FeatureImportance.jl
 include("PlotFunctions.jl")
 include("FeatureImportance.jl")
@@ -34,21 +34,22 @@ x = []
 
 
 #Cleaning data. Converting all numeric values in dataframe into Float64.
+#=
 for col in names(df)
     if eltype(df[:, col]) == Int64  
         df[!, col] = float(df[!, col])
     end
 end
-
+=#
 
 #Converts all data in the dataframe to Float32 if the model prefers it
-#=
+
 for col in names(df)
     if eltype(df[:, col]) == Float64 || eltype(df[:, col]) == Int64
         df[!, col] = convert.(Float32, df[!, col])
     end
 end
-=#
+
 
 #fill arrays with column names from the dataframe
 col_name = names(df)
@@ -75,6 +76,7 @@ for i in y_grimm
 end
 =#
 
+
 Palas = Dict{String, DataFrame}()
 for i in y_Palas
     Palas_cols = push!(x, i)
@@ -83,12 +85,12 @@ for i in y_Palas
 end
 
 # Remove non-PM variables from Palas
-#=
+
 Palas_delete = ["pressureh", "temperature", "humidity"]
 for key in Palas_delete
     global Palas = delete!(Palas, key)
 end
-=#
+
 
 
 #----------------------------------Supervised Learning-----------------------------------------------# 
@@ -122,13 +124,17 @@ for (k,v) in grimm
     #SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Gaussian Process regression function from GaussianProcessRegressor.jl
-    #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    #GaussianProcessRegression(k, X_train,   y_train, X_test, y_test, wholedata)
 
     # Run Decision Tree function from DecisionTreeRegression.jl
     #DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Random Forest Tree function from RandomForestRegression.jl
     #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
+
+    # Run SuperLearner function from SuperLearner.jl
+    SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
+
 
 end
 =#
@@ -158,7 +164,7 @@ for (k,v) in Palas
     #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run SVR function from SVR.jl
-    #SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Gaussian Process regression function from GaussianProcessRegressor.jl
     #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
@@ -170,6 +176,6 @@ for (k,v) in Palas
     #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run SuperLearner function from SuperLearner.jl
-    SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
-
+    #SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
+    
 end

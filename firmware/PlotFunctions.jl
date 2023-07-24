@@ -6,9 +6,9 @@
 function PlotHistogram(y_test, predict_test, k, kcopy)
     
     error_test = Matrix(y_test) - predict_test
-    bin_range = range(quantile(vec(Matrix(y_test, 0.5))) * -1 * 0.75, quantile(vec(Matrix(y_test, 0.5))) * 0.75, length=60)
-    p = histogram(error_test, label="Data", bins=bin_range, color="red", title= "\nEstimation Error for " * k * " Values",
-    xlabel="Error of " * k * " Value", ylabel="Frequency")
+    bin_range = range(quantile(vec(Matrix(y_test)), 0.5) * -1 * 0.75, quantile(vec(Matrix(y_test)), 0.5) * 0.75, length=60)
+    p = histogram(error_test, bins=bin_range, color="red", title= "\nEstimation Error for " * k * " Values",
+    xlabel="Error of " * k * " Value", ylabel="Frequency", legend=false)
     display(p)
     savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/histogram" * kcopy)
 
@@ -29,18 +29,37 @@ end
 
 # Plotting Scatter Plots 
 function PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
-
-    r2_score_train = round(r2_score(predict_train, Matrix(y_train)), digits=3)
-    r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
-    #train_label = "Training Data R² = " * string(r2_score_train)
-    #test_label = "Testing Data R² = " * string(r2_score_test)
+    name = ""
+    if kcopy == "pm2_5"
+        name = "PM₂.₅ (μg/m³)"
+    elseif kcopy == "pm4"
+        name = "PM₄ (μg/m³)"
+    elseif kcopy == "pm10"
+        name = "PM₁₀ (μg/m³)"
+    elseif kcopy == "pm1"
+        name = "PM₁ (μg/m³)"
+    elseif kcopy == "alveolic"
+        name = "Alveolic (μg/m³)"
+    elseif kcopy == "inhalable"
+        name = "Inhalable (μg/m³)"
+    elseif kcopy == "thoracic"
+        name = "Thoracic (μg/m³)"
+    elseif kcopy == "dCn"
+        name = "dCn (#/cm³)"
+    elseif kcopy == "pmTotal"
+        name = "Total PM (μg/m³)"
+    end
+    
     p = scatterresult(vec(Matrix(y_train)), predict_train,
                       vec(Matrix(y_test)), predict_test;
                       xlabel="Actual " * k,
                       ylabel="\nPredicted " * k,
-                      plot_title= "Scatter Plot Fit")
-                      
+                      plot_title = "Predicted vs Actual $name value")              
     #old scatter plot code
+    #r2_score_train = round(r2_score(predict_train, Matrix(y_train)), digits=3)
+    #r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
+    #train_label = "Training Data R² = " * string(r2_score_train)
+    #test_label = "Testing Data R² = " * string(r2_score_test)
     #p = Plots.plot(Matrix(y_train), Matrix(y_train), seriestype=:line, linewidth = 2, color = "blue", label = "1:1",
     #xlabel = "Actual " * k, ylabel = "\nEstimated " * k)
     #p = Plots.plot!(Matrix(y_train), predict_train, seriestype=:scatter, color = "red", label = train_label)

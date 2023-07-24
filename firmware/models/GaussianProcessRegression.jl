@@ -1,11 +1,13 @@
 GaussianProcessRegressor = @load GaussianProcessRegressor pkg=MLJScikitLearnInterface verbosity = 0
-
+using PythonCall
+kernels = PythonCall.pyimport("sklearn.gaussian_process.kernels")
 # Gaussian Process Regression Function
 
 function GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
     
     # Training model
-    model = machine(SVMRegressor(), X_train, vec(Matrix(y_train)))
+    model = machine(GaussianProcessRegressor(kernel = kernels.DotProduct(sigma_0=100.0, sigma_0_bounds=(1e-5, 1e6)),
+    alpha=10000000.0, n_restarts_optimizer=5, normalize_y = true), X_train, vec(Matrix(y_train)))
     MLJ.fit!(model, verbosity = 0)
     predict_train = MLJ.predict(model, X_train)
     predict_test = MLJ.predict(model, X_test)
@@ -16,10 +18,10 @@ function GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedat
     y = vcat(y_train, y_test)
 
     #implement grid search
-    #GridSearch(LinearRegressor(), X, y)
+    #GridSearch(GaussianProcessRegressorr(), X, y)
     
     #K-fold crossvalidatoin
-    KFoldCV(X, y, k_fold, k, SVMRegressor())
+    #KFoldCV(X, y, k_fold, k, GaussianProcessRegressor())
 
     #Print r2, mse, and rmse values for test data
     #=

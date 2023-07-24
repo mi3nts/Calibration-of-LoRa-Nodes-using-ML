@@ -19,7 +19,7 @@ function LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
     #GridSearch(LinearRegressor(), X, y)
     
     #K-fold crossvalidatoin
-    KFoldCV(X, y, k_fold, k, LinearRegressor())
+    #KFoldCV(X, y, k_fold, k, LinearRegressor())
 
     #Print r2, mse, and rmse values for test data
     #=

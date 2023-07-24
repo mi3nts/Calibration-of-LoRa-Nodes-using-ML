@@ -1,50 +1,55 @@
-RandomForestRegressor = @load RandomForestRegressor pkg=MLJDecisionTreeInterface verbosity = 0
-DecisionTreeRegressor = @load DecisionTreeRegressor pkg=MLJDecisionTreeInterface verbosity = 0
+RandomForestRegressor = @load RandomForestRegressor pkg=MLJScikitLearnInterface verbosity = 0
+DecisionTreeRegressor = @load DecisionTreeRegressor pkg=DecisionTree verbosity = 0
 NeuralNetworkRegressor = @load NeuralNetworkRegressor pkg=MLJFlux verbosity = 0
 ExtraTreesRegressor = @load ExtraTreesRegressor pkg=MLJScikitLearnInterface verbosity = 0
-XGBoostRegressor = @load XGBoostRegressor pkg=MLJXGBoostInterface verbosity = 0
+XGBoostRegressor = @load XGBoostRegressor pkg=XGBoost verbosity = 0
 KNNRegressor = @load KNNRegressor pkg=NearestNeighborModels verbosity = 0
 EvoTreeRegressor = @load EvoTreeRegressor pkg=EvoTrees verbosity = 0
 LGBMRegressor = @load LGBMRegressor pkg=LightGBM verbosity = 0
 RidgeRegressor = @load RidgeRegressor pkg=MLJLinearModels verbosity = 0
 
 
-rng = StableRNG(42)
 function SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
 
     #Neural network regressor
-    nnr = NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(250,100,50), σ=NNlib.relu),
-    batch_size = 200,
-    optimiser=Flux.Optimise.ADAM(0.001),
-    lambda = 0.0001,  
-    rng=rng,
-    epochs=200)
+    #grimm_dictionary with models
+    #grimm_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,64), σ = Flux.σ), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=16, batch_size=6, rng=StableRNG(42)),
+    #"dtr" => DecisionTreeRegressor(), "edtr" => EnsembleModel(model=dtr, n=100, bagging_fraction=0.8), "rfr" => RandomForestRegressor(n_trees=52), "xgbr" => XGBoostRegressor(max_depth = 5, num_round = 14),
+    #"knnr" => KNNRegressor(K = 27, algorithm = :kdtree, leafsize = 21), "etr" => EvoTreeRegressor(max_depth = 9, nrounds=56), "lgbr" => LGBMRegressor(num_leaves = 41, min_data_in_leaf = 1),
+    #"extra" => ExtraTreesRegressor(max_depth = 7, n_estimators=93), "rr" => RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false))
+
+    nnr = NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,64), σ = Flux.σ), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=16, batch_size=6, rng=StableRNG(42))
 
     #decision tree
     dtr = DecisionTreeRegressor()
 
     #Ensemble of Trees
-    edtr = EnsembleModel(model=dtr, n=100, bagging_fraction=bf)
+    edtr = EnsembleModel(model=dtr, n=100, bagging_fraction=0.8)
 
     #random forest regressor
     rfr = RandomForestRegressor()
 
     #xgboost
-    xgbr = XGBoostRegressor()
+    xgbr = XGBoostRegressor(max_depth = 5, num_round = 14)
 
     #KNNRegressor
-    knnr = KNNRegressor()
+    knnr = KNNRegressor(K = 27, algorithm = :kdtree, leafsize = 21)
 
     #Evotree regressor
-    etr = EvoTreeRegressor()
+    etr = EvoTreeRegressor(max_depth = 9, nrounds=56)
 
     #LGBMRegressor
-    lgbr = LGBMRegressor()
+    lgbr = LGBMRegressor(num_leaves = 41, min_data_in_leaf = 1)
 
+    #ExtraTreesRegressor
+    extra=ExtraTreesRegressor(max_depth = 7, n_estimators=93)
+
+    #RidgeRegressor
+    rr = RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false)
+    
     #defining stack
-
-    stack = MLJ.Stack(;metalearner = RidgeRegressor(),
-        resampling = CV(nfolds=5, shuffle=true, rng=123),
+    stack = MLJ.Stack(;metalearner = extra,
+        resampling = CV(nfolds=3, shuffle=true, rng=123),
         measures=rsquared,
         nnr=nnr,
         dtr=dtr,
@@ -52,8 +57,9 @@ function SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
         rfr=rfr,
         xgbr=xgbr,
         knnr=knnr,
-        etr=etr,
-        lgbr=lgbr
+        lgbr=lgbr,
+        extra=extra,
+        rr=rr,
         )
     
     # Training model
@@ -64,6 +70,7 @@ function SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
     
     println("----superlearner-------")
     println(r2_score(MLJ.predict(model, X_test), Matrix(y_test)))
+    
     # ------------------ Cross Validation ---------------------#
     k_fold = 5
     X = vcat(X_train, X_test)
@@ -76,8 +83,8 @@ function SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
     #KFoldCV(X, y, k_fold, k, stack)
 
     #Print r2, mse, and rmse values for test data
-    #=
-    println("----superlearner-------")
+    
+    #=println("----superlearner-------")
     r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
     println("Linear Regression: test r2 value for " * k * " = " * string(r2_score_test))
     mse_test = round(mse(predict_test, Matrix(y_test)), digits=3)
@@ -98,15 +105,21 @@ function SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
         if occursin(k, "pm2_5")
             k = replace(k, "_" => ".")
         end
-        k = "PM" * latexstring("_{" * k[3:length(k)] * "}") * " (µg/m" * latexstring("^{3}") * ")"
+        k = "PM" * latexstring("_{" * k[3:length(k)] * "}") * " (μg/m³)"
     elseif k == "pmTotal"
-        k = "Total PM"
+        k = "Total PM " * latexstring("_{" * k[3:length(k)] * "}") * " (μg/m³)"
+    elseif k == "alveolic"
+        k = "Alveolic" * " (μg/m³)"
+    elseif k == "thoracic"
+        k = "Thoracic" * " (μg/m³)"
+    elseif k == "inhalable"
+        k = "Inhalable" * " (μg/m³)"
     end
     
 
     #Plotting Functions
     PlotHistogram(y_test, predict_test, k, kcopy)
-    #PlotBarComparison(y_test, predict_test, k, kcopy)
+    PlotBarComparison(y_test, predict_test, k, kcopy)
     PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
     PlotQQ(y_test, predict_test, k, kcopy)
     PlotFeatureImportance(data_plot, k, kcopy)
