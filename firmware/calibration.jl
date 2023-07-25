@@ -6,7 +6,7 @@ gr()
 #Load in dataframe
 filepath = "C:/Users/sethl/OneDrive/Desktop/data/calibrate.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
-df = df[!, Not(:CO_loRa)]
+df = df[!, Not(:CO_loRa)]   
 #include plotting functions from PlotFunctions.jl and Feature Importance function from FeatureImportance.jl
 include("PlotFunctions.jl")
 include("FeatureImportance.jl")
@@ -20,7 +20,7 @@ include("KFoldCV.jl")
 #include functions from models file 
 include("models/LinearRegression.jl")
 include("models/NeuralNetworkRegression.jl")
-include("models/SVRRegression.jl")
+include("models/Regression.jl")
 include("models/GaussianProcessRegression.jl")
 include("models/DecisionTreeRegression.jl")
 include("models/RandomForestRegression.jl") 
@@ -42,7 +42,7 @@ for col in names(df)
 end
 =#
 
-#Converts all data in the dataframe to Float32 if the model prefers it
+#Converts all data in the dataframe to Float32 if the model prefers it (like neuralnetwork)
 
 for col in names(df)
     if eltype(df[:, col]) == Float64 || eltype(df[:, col]) == Int64
@@ -164,7 +164,7 @@ for (k,v) in Palas
     #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run SVR function from SVR.jl
-    SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
+    #SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run Gaussian Process regression function from GaussianProcessRegressor.jl
     #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)

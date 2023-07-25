@@ -1,10 +1,10 @@
-Regressor = @load DecisionTreeRegressor pkg=DecisionTree verbosity = 0
+Regressor = @load XGBoostRegressor pkg=XGBoost verbosity = 0
 
 
-function SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
+function Regression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Training model
-    model = machine(Regressor(), X_train, vec(Matrix(y_train)))
+    model = machine(Regressor(max_depth = 5, num_round = 14), X_train, vec(Matrix(y_train)))
     MLJ.fit!(model, verbosity = 0)
     predict_train = MLJ.predict(model, X_train)
     predict_test = MLJ.predict(model, X_test)
@@ -20,13 +20,12 @@ function SVRRegression(k, X_train, y_train, X_test, y_test, wholedata)
     #KFoldCV(X, y, k_fold, k, Regressor())
 
     #Print r2, mse, and rmse values for test data
-    
     r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
     println("test r2 value for " * k * " = " * string(r2_score_test))
     #mse_test = round(mse(predict_test, Matrix(y_test)), digits=3)
-    #println("Linear Regression: test mse value for " * k * " = " * string(mse_test))
+    #println("test mse value for " * k * " = " * string(mse_test))
     #rmse_test = round(sqrt(mse_test), digits=3)
-    #println("Linear Regression: test rmse value for " * k * " = " * string(rmse_test))
+    #println("test rmse value for " * k * " = " * string(rmse_test))
     
     
     # Calculating Feature Importance using the FeatureImportance Function from FeatureImportance.jl

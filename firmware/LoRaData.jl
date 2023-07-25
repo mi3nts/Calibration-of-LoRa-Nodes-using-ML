@@ -115,4 +115,4 @@ for col in names(final_df)
 end
 
 sort!(final_df, :dateTime)
-#CSV.write("C:/Users/sethl/OneDrive/Desktop/SethRepo/firmware/old/small_df.csv", final_df)
+CSV.write("C:/Users/sethl/OneDrive/Desktop/SethRepo/firmware/old/small_df.csv", final_df)
