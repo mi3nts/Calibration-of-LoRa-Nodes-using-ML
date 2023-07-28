@@ -1,5 +1,5 @@
 RandomForestRegressor = @load RandomForestRegressor pkg=MLJScikitLearnInterface verbosity = 0
-DecisionTreeRegressor = @load DecisionTreeRegressor pkg=DecisionTree verbosity = 0
+DecisionTreeRegressor = @load DecisionTreeRegressor pkg=BetaML verbosity = 0
 NeuralNetworkRegressor = @load NeuralNetworkRegressor pkg=MLJFlux verbosity = 0
 ExtraTreesRegressor = @load ExtraTreesRegressor pkg=MLJScikitLearnInterface verbosity = 0
 XGBoostRegressor = @load XGBoostRegressor pkg=XGBoost verbosity = 0
@@ -11,61 +11,21 @@ RidgeRegressor = @load RidgeRegressor pkg=MLJLinearModels verbosity = 0
 
 function SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
 
-    #grimm_dictionary with models
-    #grimm_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,64), σ = Flux.σ), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=16, batch_size=6, rng=StableRNG(42)),
-    #"dtr" => DecisionTreeRegressor(), "edtr" => EnsembleModel(model=dtr, n=100, bagging_fraction=0.8), "rfr" => RandomForestRegressor(n_trees=52), "xgbr" => XGBoostRegressor(max_depth = 5, num_round = 14),
-    #"knnr" => KNNRegressor(K = 27, algorithm = :kdtree, leafsize = 21), "etr" => EvoTreeRegressor(max_depth = 9, nrounds=56), "lgbr" => LGBMRegressor(num_leaves = 41, min_data_in_leaf = 1),
-    #"extra" => ExtraTreesRegressor(max_depth = 7, n_estimators=93), "rr" => RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false))
-
     #palas_dictionary
-    #palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,64), σ = Flux.σ), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=16, batch_size=6, rng=StableRNG(42)),
-    #"dtr" => DecisionTreeRegressor(), "edtr" => EnsembleModel(model=dtr, n=100, bagging_fraction=0.8), "rfr" => RandomForestRegressor(n_trees=52), "xgbr" => XGBoostRegressor(max_depth = 5, num_round = 14),
-    #"knnr" => KNNRegressor(K = 27, algorithm = :kdtree, leafsize = 21), "etr" => EvoTreeRegressor(max_depth = 9, nrounds=56), "lgbr" => LGBMRegressor(num_leaves = 41, min_data_in_leaf = 1),
-    #"extra" => ExtraTreesRegressor(max_depth = 7, n_estimators=93), "rr" => RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false))
-
-    #Neuralnetworkregressor
-    nnr = NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,64), σ = Flux.σ), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=16, batch_size=6, rng=StableRNG(42))
-
-    #decision tree
-    dtr = DecisionTreeRegressor()
-
-    #Ensemble of Trees
-    edtr = EnsembleModel(model=dtr, n=100, bagging_fraction=0.8)
-
-    #random forest regressor
-    rfr = RandomForestRegressor()
-
-    #xgboost
-    xgbr = XGBoostRegressor(max_depth = 5, num_round = 14)
-
-    #KNNRegressor
-    knnr = KNNRegressor(K = 27, algorithm = :kdtree, leafsize = 21)
-
-    #Evotree regressor
-    etr = EvoTreeRegressor(max_depth = 9, nrounds=56)
-
-    #LGBMRegressor
-    lgbr = LGBMRegressor(num_leaves = 41, min_data_in_leaf = 1)
-
-    #ExtraTreesRegressor
-    extra=ExtraTreesRegressor(max_depth = 7, n_estimators=93)
-
-    #RidgeRegressor
-    rr = RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false)
+    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(256,128,128), σ = Flux.σ), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=16, batch_size=6, rng=StableRNG(42)),
+    "dtr" => DecisionTreeRegressor(), "edtr" => EnsembleModel(model=dtr, n=100, bagging_fraction=0.8), "rfr" => RandomForestRegressor(),
+    "knnr" => KNNRegressor(K = 27, algorithm = :kdtree, leafsize = 21), "lgbr" => LGBMRegressor(num_iterations=80, min_gain_to_split=0.05, learning_rate=.2, num_leaves = 41, min_data_in_leaf = 1),
+    "extra" => ExtraTreesRegressor(max_depth = 17, n_estimators=101), "rr" => RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false))
     
     #defining stack
-    stack = MLJ.Stack(;metalearner = nnr,
-        resampling = CV(nfolds=3, shuffle=true, rng=123),
+    stack = MLJ.Stack(;metalearner = palas_dict["rfr"],
+        resampling = CV(nfolds=4, shuffle=true, rng=123),
         measures=rsquared,
-        nnr=nnr,
-        dtr=dtr,
-        edtr=edtr,
-        rfr=rfr,
-        xgbr=xgbr,
-        knnr=knnr,
-        lgbr=lgbr,
-        extra=extra,
-        rr=rr,
+        dtr=palas_dict["dtr"],
+        edtr=palas_dict["edtr"],
+        rfr=palas_dict["rfr"],    
+        lgbr=palas_dict["lgbr"],
+        extra=palas_dict["extra"],
         )
     
     # Training model
@@ -101,21 +61,24 @@ function SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
     kcopy = k
     
     #LaTex Formatting
-    if k[1:2] == "pm" && k != "pmTotal"
-        if occursin(k, "pm2_5")
-            k = replace(k, "_" => ".")
-        end
-        k = "PM" * latexstring("_{" * k[3:length(k)] * "}") * " (μg/m³)"
-    elseif k == "pmTotal"
-        k = "Total PM (μg/m³)"
+    if k == "pm2_5"
+        k = "PM₂.₅ (μg/m³)"
+    elseif k == "pm4"
+        k = "PM₄.₀ (μg/m³)"
+    elseif k == "pm10"
+        k = "PM₁₀.₀ (μg/m³)"
+    elseif k == "pm1"
+        k = "PM₁.₀ (μg/m³)"
     elseif k == "alveolic"
         k = "Alveolic (μg/m³)"
-    elseif k == "thoracic"
-        k = "Thoracic (μg/m³)"
     elseif k == "inhalable"
         k = "Inhalable (μg/m³)"
-    elseif k == "dCn" 
-        k = "dCn (#/cm³)"
+    elseif k == "thoracic"
+        k = "Thoracic (μg/m³)"
+    elseif k == "dCn"
+        k = "Particle Count Density (#/cm³)"
+    elseif k == "pmTotal"
+        k = "Total PM Concentration (μg/m³)"
     end
     
 

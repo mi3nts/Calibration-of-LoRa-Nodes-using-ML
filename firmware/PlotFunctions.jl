@@ -1,6 +1,8 @@
 
  #---------------------------------Plotting Function --------------------------------------#
 
+#Change output path here.
+output_path = "C:/Users/sethl/OneDrive/Desktop/plotimages/"
 
 # Plotting Histogram - representing error between actual vs predicted values
 function PlotHistogram(y_test, predict_test, k, kcopy)
@@ -8,9 +10,9 @@ function PlotHistogram(y_test, predict_test, k, kcopy)
     error_test = Matrix(y_test) - predict_test
     bin_range = range(quantile(vec(Matrix(y_test)), 0.5) * -1 * 0.75, quantile(vec(Matrix(y_test)), 0.5) * 0.75, length=60)
     p = histogram(error_test, bins=bin_range, color="red", title= "\nEstimation Error for " * k * " Values",
-    xlabel="Error of " * k * " Value", ylabel="Frequency", legend=false)
+    xlabel="Error of " * k * " Value", ylabel="Frequency", legend=false, titlefontsize=12)
     display(p)
-    savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/histogram" * kcopy)
+    savefig(p, output_path * "histogram" * kcopy)
 
 end
 
@@ -21,40 +23,22 @@ function PlotBarComparison(y_test, predict_test, k, kcopy)
     group_num = repeat(["Actual", "Predicted"], inner = 9)
     nam = repeat("G" .* string.(1:9), outer = 2)
     p = groupedbar(nam, compare_data, group = group_num, ylabel = "\n" * k * " values", xlabel = "Groups",
-    title = "\nActual vs Predicted " * k * " Values")
+    title = "\nActual vs Predicted " * k * " Values", titlefontsize=12)
     display(p)
-    savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/barcomparison" * kcopy)
+    savefig(p, output_path * "barcomparison" * kcopy)
 
 end
 
 # Plotting Scatter Plots 
 function PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
-    name = ""
-    if kcopy == "pm2_5"
-        name = "PM₂.₅ (μg/m³)"
-    elseif kcopy == "pm4"
-        name = "PM₄ (μg/m³)"
-    elseif kcopy == "pm10"
-        name = "PM₁₀ (μg/m³)"
-    elseif kcopy == "pm1"
-        name = "PM₁ (μg/m³)"
-    elseif kcopy == "alveolic"
-        name = "Alveolic (μg/m³)"
-    elseif kcopy == "inhalable"
-        name = "Inhalable (μg/m³)"
-    elseif kcopy == "thoracic"
-        name = "Thoracic (μg/m³)"
-    elseif kcopy == "dCn"
-        name = "dCn (#/cm³)"
-    elseif kcopy == "pmTotal"
-        name = "Total PM (μg/m³)"
-    end
     
     p = scatterresult(vec(Matrix(y_train)), predict_train,
                       vec(Matrix(y_test)), predict_test;
-                      xlabel="Actual " * k,
-                      ylabel="\nPredicted " * k,
-                      plot_title = "Predicted vs Actual $name value")              
+                      xlabel="Actual $k",
+                      ylabel="\nPredicted $k",
+                      plot_title = "Predicted vs Actual $k",
+                      plot_titlefontsize=12) 
+
     #old scatter plot code
     #r2_score_train = round(r2_score(predict_train, Matrix(y_train)), digits=3)
     #r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
@@ -67,7 +51,7 @@ function PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
     #p = Plots.title!("\nScatter Plot for " * k)
     
     display(p)
-    savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/scatterplot" * kcopy)
+    savefig(p, output_path * "scatterplot" * kcopy)
 
 end
 
@@ -75,7 +59,7 @@ end
 function PlotQQ(y_test, predict_test, k, kcopy)
 
     p = Plots.plot(qqplot(vec(Matrix(y_test)), predict_test), title = "\nQuantile-Quantile Plot for " * k, 
-    xlabel = "Actual Quantile", ylabel = "Estimated Quantile")
+    xlabel = "Actual Quantile", ylabel = "Estimated Quantile", titlefontsize=12)
     y_test_quantile = quantile(vec(Matrix(y_test)), [0,0.25,0.5,0.75,1])
     y_predict_quantile = quantile(predict_test, [0,0.25,0.5,0.75,1])
     p = Plots.plot!(y_test_quantile, y_predict_quantile, seriestype=:scatter, color = "red", marker = :xcross)
@@ -87,7 +71,7 @@ function PlotQQ(y_test, predict_test, k, kcopy)
     end
 
     display(p)
-    savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/QQ-Plot" * kcopy)
+    savefig(p, output_path * "QQ-Plot" * kcopy)
 end
 
 # Plotting Feature importance
@@ -110,13 +94,14 @@ function PlotFeatureImportance(data_plot, k, kcopy)
     data_plot.feature_name = replace.(data_plot.feature_name, "Humidity" => "Humidity" * latexstring("_{}"))
 
     p = Plots.bar(data_plot[:, :relative_importance], title="\nFeature Importance for " * k,
-    yticks=(1:nrows(data_plot), data_plot[:, :feature_name]), bottom_margin=0mm, 
+    titlefontsize=11, yticks=(1:nrows(data_plot), data_plot[:, :feature_name]), 
     xlabel="Relative Importance", legend = false, orientation=:h, xlims=(-0.01, 1.01))
     display(p)
-    savefig(p, "C:/Users/sethl/OneDrive/Desktop/plotimages/featureimportance" * kcopy)
+    savefig(p, output_path * "featureimportance" * kcopy)
     
 end
 
+#work in progress
 function PlotTimeSeries(wholedata, model, k)
     DateTime = vec(Matrix(select(wholedata, :dateTime)))
 

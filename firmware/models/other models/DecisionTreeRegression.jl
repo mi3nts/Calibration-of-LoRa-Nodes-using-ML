@@ -1,4 +1,4 @@
-DecisionTreeRegressor = @load DecisionTreeRegressor pkg=DecisionTree verbosity = 0
+DecisionTreeRegressor = @load DecisionTreeRegressor pkg=BetaML verbosity = 0
 
 # Decision Tree Regression Function
 
