@@ -1,15 +1,15 @@
 using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions, ShapML, MLBase
-using mintsML: scatterresult 
+using MintsPlotRecipes: scatterresult 
 #To use scatterresult, modify the mints_recipes.jl file with the one in the repo.
 using StableRNGs, Distances, Flux
 gr()
 
 #Load in dataframe
-filepath = "C:/Users/sethl/OneDrive/Desktop/data/calibrate.csv"
+filepath = "C:/Users/sethl/OneDrive/Desktop/data/small_df.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
 df = df[!, Not(:CO_loRa)]   
 
-#include plotting functions from PlotFunctions.jl and Feature Importance function from Featur\eImportance.jl
+#include plotting functions from PlotFunctions.jl and Feature Importance function from FeatureImportance.jl
 include("PlotFunctions.jl") #MUST CHANGE FILE OUTPUT
 include("FeatureImportance.jl")
 
