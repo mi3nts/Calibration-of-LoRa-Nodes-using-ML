@@ -62,7 +62,7 @@ function PlotQQ(y_test, predict_test, k, kcopy)
     xlabel = "Actual Quantile", ylabel = "Estimated Quantile", titlefontsize=12)
     y_test_quantile = quantile(vec(Matrix(y_test)), [0,0.25,0.5,0.75,1])
     y_predict_quantile = quantile(predict_test, [0,0.25,0.5,0.75,1])
-    p = Plots.plot!(y_test_quantile, y_predict_quantile, seriestype=:scatter, color = "red", marker = :xcross)
+    p = Plots.plot!(y_test_quantile, y_predict_quantile, seriestype=:scatter, color = "red", marker = :xcross, markerstrokewidth=3)
 
     #plot quantile markers at 0, 0.25, 0.5, 0.75, and 1
     for i in 1:5

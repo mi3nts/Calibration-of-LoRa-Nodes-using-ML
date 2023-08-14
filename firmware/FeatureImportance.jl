@@ -12,6 +12,17 @@ wholedata = DataFrames.select(wholedata, Not("dateTime"))
         println("Warning: DataFrame - wholedata - doesn't contain Palas or _grimm data")
     end
 
+    #scale data when dealing with feature importance
+    sklearn_preprocessing = pyimport("sklearn.preprocessing")
+    scaler = sklearn_preprocessing.StandardScaler()
+    wholedata_scaled = scaler.fit_transform(Matrix(wholedata))
+    
+    col_name = names(wholedata)
+    wholedata = DataFrames.DataFrame(pyconvert(Matrix{Float32}, wholedata_scaled), :auto)
+
+    for (n, old_col) in enumerate(names(wholedata))
+        rename!(wholedata, Symbol(old_col) => Symbol(col_name[n]))
+    end
     sample_size = 100
 
     function predict_function(model, data)

@@ -1,13 +1,12 @@
 using Dates, DataFrames, CSV, MLJ, Metrics, LaTeXStrings, StatsPlots, Measures, Distributions, ShapML, MLBase
 using MintsPlotRecipes: scatterresult 
 #To use scatterresult, modify the mints_recipes.jl file with the one in the repo.
-using StableRNGs, Distances, Flux
+using StableRNGs, Distances, Flux, PythonCall
 gr()
 
 #Load in dataframe
 filepath = "C:/Users/sethl/OneDrive/Desktop/data/small_df.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
-df = df[!, Not(:CO_loRa)]   
 
 #include plotting functions from PlotFunctions.jl and Feature Importance function from FeatureImportance.jl
 include("PlotFunctions.jl") #MUST CHANGE FILE OUTPUT
@@ -31,22 +30,22 @@ x = []
 
 
 #Cleaning data. Converting all numeric values in dataframe into Float64.
-
+#=
 for col in names(df)
     if eltype(df[:, col]) == Int64  
         df[!, col] = float(df[!, col])
     end
 end
-
+=#
 
 #Converts all data in the dataframe to Float32 if the model prefers it (like neuralnetwork)
-#=
+
 for col in names(df)
     if eltype(df[:, col]) == Float64 || eltype(df[:, col]) == Int64
         df[!, col] = convert.(Float32, df[!, col])
     end
 end
-=#
+
 
 #fill arrays with column names from the dataframe
 col_name = names(df)
@@ -154,23 +153,8 @@ for (k,v) in Palas
 
     #--------------------------Regression Functions--------------------------#
 
-    # Run linear regression function from LinearRegression.jl
-    #LinearRegression(k, X_train, y_train, X_test, y_test, wholedata)
-
-    # Run neural network regression function from NeuralNetworkRegression.jl
-    #NeuralNetworkRegression(k, X_train, y_train, X_test, y_test, wholedata)
-
-    # Run SVR function from SVR.jl
+    # Run Regression
     Regression(k, X_train, y_train, X_test, y_test, wholedata)
-    
-    # Run Gaussian Process regression function from GaussianProcessRegressor.jl
-    #GaussianProcessRegression(k, X_train, y_train, X_test, y_test, wholedata)
-
-    # Run Decision Tree function from DecisionTreeRegression.jl
-    #DecisionTreeRegression(k, X_train, y_train, X_test, y_test, wholedata)
-
-    # Run Random Forest Tree function from RandomForestRegression.jl
-    #RandomForestRegression(k, X_train, y_train, X_test, y_test, wholedata)
 
     # Run SuperLearner function from SuperLearner.jl
     #SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)

@@ -2,31 +2,53 @@ RandomForestRegressor = @load RandomForestRegressor pkg=MLJScikitLearnInterface 
 DecisionTreeRegressor = @load DecisionTreeRegressor pkg=BetaML verbosity = 0
 NeuralNetworkRegressor = @load NeuralNetworkRegressor pkg=MLJFlux verbosity = 0
 ExtraTreesRegressor = @load ExtraTreesRegressor pkg=MLJScikitLearnInterface verbosity = 0
-XGBoostRegressor = @load XGBoostRegressor pkg=XGBoost verbosity = 0
-KNNRegressor = @load KNNRegressor pkg=NearestNeighborModels verbosity = 0
-EvoTreeRegressor = @load EvoTreeRegressor pkg=EvoTrees verbosity = 0
 LGBMRegressor = @load LGBMRegressor pkg=LightGBM verbosity = 0
 RidgeRegressor = @load RidgeRegressor pkg=MLJLinearModels verbosity = 0
 LinearRegressor = @load LinearRegressor pkg=MLJScikitLearnInterface verbosity = 0
+KNeighborsRegressor = @load KNeighborsRegressor pkg=MLJScikitLearnInterface verbosity=0
+GaussianProcessRegressor = @load GaussianProcessRegressor pkg=MLJScikitLearnInterface verbosity =0
+
+
 
 function Regression(k, X_train, y_train, X_test, y_test, wholedata)
+    if k != "pmTotal"
+        return
+    end
     #Regressor Models - access dictionary by key to use model. - current tuning.
-    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(256,256,128), σ = Flux.σ), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=16, batch_size=6, rng=StableRNG(42)),
+    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,256,128), σ = Flux.relu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=6, rng=StableRNG(42)),
     "dtr" => DecisionTreeRegressor(), 
     "edtr" => EnsembleModel(model=DecisionTreeRegressor(), n=100, bagging_fraction=0.8), 
     "rfr" => RandomForestRegressor(),
-    "knnr" => KNNRegressor(K = 27, algorithm = :kdtree, leafsize = 21), 
-    "lgbr" => LGBMRegressor(num_iterations=80, min_gain_to_split=0.05, learning_rate=.2, num_leaves = 41, min_data_in_leaf = 1),
-    "extra" => ExtraTreesRegressor(max_depth = 17, n_estimators=101), 
+    "knnr" => KNeighborsRegressor(n_neighbors=7, weights="distance", metric="euclidean"),
+    "lgbr" => LGBMRegressor(num_iterations=160, lambda_l1 = 85.3, lambda_l2 = 6.2, min_gain_to_split=0.05, num_leaves = 114, min_data_in_leaf = 3, learning_rate=0.08),
+    "extra" => ExtraTreesRegressor(n_estimators=111), 
     "rr" => RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false),
-    "linear" => LinearRegressor())
+    "linear" => LinearRegressor(),
+    )
     
     # NeuralNetwork Builder - work in progress
     #builder = MLJFlux.@builder Chain(Dense(16, 128, NNlib.σ), Dense(128, 256, NNlib.σ), 
     #Dense(256, 64, NNlib.σ), Dense(64,1,NNlib.σ))
 
+
+    # scale data
+    sklearn_preprocessing = pyimport("sklearn.preprocessing")
+    scaler = sklearn_preprocessing.StandardScaler()
+    X_train_scaled = scaler.fit_transform(Matrix(X_train))
+    X_test_scaled = scaler.transform(Matrix(X_test))
+    
+    col_name = names(X_train)
+    X_train = DataFrames.DataFrame(pyconvert(Matrix{Float32}, X_train_scaled), :auto)
+    X_test = DataFrames.DataFrame(pyconvert(Matrix{Float32}, X_test_scaled), :auto)
+
+    for (n, old_col) in enumerate(names(X_train))
+        rename!(X_train, Symbol(old_col) => Symbol(col_name[n]))
+        rename!(X_test, Symbol(old_col) => Symbol(col_name[n]))
+    end
+
+
     # Training model
-    model = machine(palas_dict["rfr"], X_train, vec(Matrix(y_train)))
+    model = machine(palas_dict["nnr"], X_train, vec(Matrix(y_train)))
     MLJ.fit!(model, verbosity = 0)
     predict_train = MLJ.predict(model, X_train)
     predict_test = MLJ.predict(model, X_test)
@@ -42,7 +64,7 @@ function Regression(k, X_train, y_train, X_test, y_test, wholedata)
 
 
     #implement grid search
-    #GridSearch(RandomForestRegressor(), X, y)
+    #GridSearch(ExtraTreesRegressor(), X, y)
 
     #Print r2, mse, and rmse values for test data
     r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
@@ -53,6 +75,7 @@ function Regression(k, X_train, y_train, X_test, y_test, wholedata)
     #println("test rmse value for " * k * " = " * string(rmse_test))
     
     # Calculating Feature Importance using the FeatureImportance Function from FeatureImportance.jl
+    #=
     data_plot = FeatureImportance(wholedata, k, model)
     
     #copying the target variable name before changing latex Formatting
@@ -104,7 +127,7 @@ function Regression(k, X_train, y_train, X_test, y_test, wholedata)
     PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
     PlotQQ(y_test, predict_test, k, kcopy)
     PlotFeatureImportance(data_plot, k, kcopy)
-
+    =#
 end
 
 
