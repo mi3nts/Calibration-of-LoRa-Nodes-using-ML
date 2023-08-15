@@ -10,25 +10,28 @@ KNeighborsRegressor = @load KNeighborsRegressor pkg=MLJScikitLearnInterface verb
 function SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
 
     #palas_dictionary
-    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(256,256,128,128), σ = Flux.relu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=16, batch_size=6, rng=StableRNG(42)),
+    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,164,128,92), σ = Flux.elu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=3, rng=StableRNG(42), lambda=10),
+    "nnr2" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,144,144,92), σ = Flux.elu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=3, rng=StableRNG(42), lambda=10),
     "dtr" => DecisionTreeRegressor(), 
     "edtr" => EnsembleModel(model=DecisionTreeRegressor(), n=100, bagging_fraction=0.8), 
     "rfr" => RandomForestRegressor(),
-    "knnr" => KNeighborsRegressor(n_neighbors=7, weights="distance", metric="euclidean"),
+    "knnr" => KNeighborsRegressor(n_neighbors=8, weights="distance", metric="manhattan", leaf_size=5),
     "lgbr" => LGBMRegressor(num_iterations=160, lambda_l1 = 85.3, lambda_l2 = 6.2, min_gain_to_split=0.05, num_leaves = 114, min_data_in_leaf = 3, learning_rate=0.08),
     "extra" => ExtraTreesRegressor(n_estimators=111), 
-    "rr" => RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false)    )
+    "rr" => RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false),
+    )
     
     #defining stack
     stack = MLJ.Stack(;metalearner = palas_dict["knnr"],
-        resampling = CV(nfolds=4, shuffle=true, rng=123),
+        resampling = CV(nfolds=5, shuffle=true, rng=123),
         measures=rsquared,
+        nnr=palas_dict["nnr"],
+        nnr2=palas_dict["nnr2"],
         dtr=palas_dict["dtr"],
         edtr=palas_dict["edtr"],
         rfr=palas_dict["rfr"],    
         lgbr=palas_dict["lgbr"],
-        extra=palas_dict["extra"],
-        nnr=palas_dict["nnr"]
+        extra=palas_dict["extra"]
         )
     
     # scale data

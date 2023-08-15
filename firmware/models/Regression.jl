@@ -14,23 +14,20 @@ function Regression(k, X_train, y_train, X_test, y_test, wholedata)
     if k != "pmTotal"
         return
     end
+
     #Regressor Models - access dictionary by key to use model. - current tuning.
-    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,256,128), σ = Flux.relu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=6, rng=StableRNG(42)),
+    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(92,164,128,92), σ = Flux.elu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=3, rng=StableRNG(42), lambda=10),
     "dtr" => DecisionTreeRegressor(), 
     "edtr" => EnsembleModel(model=DecisionTreeRegressor(), n=100, bagging_fraction=0.8), 
     "rfr" => RandomForestRegressor(),
-    "knnr" => KNeighborsRegressor(n_neighbors=7, weights="distance", metric="euclidean"),
+    "knnr" => KNeighborsRegressor(n_neighbors=8, weights="distance", metric="manhattan", leaf_size=5),
     "lgbr" => LGBMRegressor(num_iterations=160, lambda_l1 = 85.3, lambda_l2 = 6.2, min_gain_to_split=0.05, num_leaves = 114, min_data_in_leaf = 3, learning_rate=0.08),
     "extra" => ExtraTreesRegressor(n_estimators=111), 
     "rr" => RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false),
     "linear" => LinearRegressor(),
     )
     
-    # NeuralNetwork Builder - work in progress
-    #builder = MLJFlux.@builder Chain(Dense(16, 128, NNlib.σ), Dense(128, 256, NNlib.σ), 
-    #Dense(256, 64, NNlib.σ), Dense(64,1,NNlib.σ))
-
-
+    
     # scale data
     sklearn_preprocessing = pyimport("sklearn.preprocessing")
     scaler = sklearn_preprocessing.StandardScaler()
@@ -64,9 +61,11 @@ function Regression(k, X_train, y_train, X_test, y_test, wholedata)
 
 
     #implement grid search
-    #GridSearch(ExtraTreesRegressor(), X, y)
+    #GridSearch(NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,256,128,64), σ = Flux.elu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=3, rng=StableRNG(42)), X, y)
 
     #Print r2, mse, and rmse values for test data
+    r2_score_test = round(r2_score(predict_train, Matrix(y_train)), digits=3)
+    println("train r2 value for " * k * " = " * string(r2_score_test))
     r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
     println("test r2 value for " * k * " = " * string(r2_score_test))
     #mse_test = round(mse(predict_test, Matrix(y_test)), digits=3)
@@ -129,5 +128,6 @@ function Regression(k, X_train, y_train, X_test, y_test, wholedata)
     PlotFeatureImportance(data_plot, k, kcopy)
     =#
 end
+
 
 
