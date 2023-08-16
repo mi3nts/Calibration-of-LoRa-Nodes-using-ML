@@ -5,8 +5,16 @@ using StableRNGs, Distances, Flux, PythonCall
 gr()
 
 #Load in dataframe
-filepath = "C:/Users/sethl/OneDrive/Desktop/data/small_df.csv"
+filepath = "C:/Users/sethl/OneDrive/Desktop/data/final_df.csv"
 df = DataFrames.DataFrame(CSV.File(filepath))
+df = df[!, Not(:NO2_loRa)]
+df = df[!, Not(:H2_loRa)]
+df = df[!, Not(:C2H5OH_loRa)]   
+df = df[!, Not(:C4H10_loRa)]
+df = df[!, Not(:CH4_loRa)]
+df = df[!, Not(:C3H8_loRa)] 
+df = df[!, Not(:NH3_loRa)]  
+df = df[!, Not(:CO2_loRa)]
 
 #include plotting functions from PlotFunctions.jl and Feature Importance function from FeatureImportance.jl
 include("PlotFunctions.jl") #MUST CHANGE FILE OUTPUT
@@ -30,7 +38,7 @@ x = []
 
 
 #Cleaning data. Converting all numeric values in dataframe into Float64.
-#=
+#= 
 for col in names(df)
     if eltype(df[:, col]) == Int64  
         df[!, col] = float(df[!, col])
@@ -39,7 +47,6 @@ end
 =#
 
 #Converts all data in the dataframe to Float32 if the model prefers it (like neuralnetwork)
-
 for col in names(df)
     if eltype(df[:, col]) == Float64 || eltype(df[:, col]) == Int64
         df[!, col] = convert.(Float32, df[!, col])

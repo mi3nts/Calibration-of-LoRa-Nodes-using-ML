@@ -11,17 +11,18 @@ GaussianProcessRegressor = @load GaussianProcessRegressor pkg=MLJScikitLearnInte
 
 
 function Regression(k, X_train, y_train, X_test, y_test, wholedata)
-    if k != "pmTotal"
-        return
-    end
+    #if k != "dCn"
+    #    return
+    #end
 
     #Regressor Models - access dictionary by key to use model. - current tuning.
-    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(92,164,128,92), σ = Flux.elu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=3, rng=StableRNG(42), lambda=10),
+    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(92,132,112,92), σ = Flux.elu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=3, rng=StableRNG(42), lambda=10),
     "dtr" => DecisionTreeRegressor(), 
     "edtr" => EnsembleModel(model=DecisionTreeRegressor(), n=100, bagging_fraction=0.8), 
-    "rfr" => RandomForestRegressor(),
+    "rfr" => RandomForestRegressor(max_depth=14, n_estimators=100),
     "knnr" => KNeighborsRegressor(n_neighbors=8, weights="distance", metric="manhattan", leaf_size=5),
-    "lgbr" => LGBMRegressor(num_iterations=160, lambda_l1 = 85.3, lambda_l2 = 6.2, min_gain_to_split=0.05, num_leaves = 114, min_data_in_leaf = 3, learning_rate=0.08),
+    "lgbr10" => LGBMRegressor(num_iterations=140, lambda_l1 = 22, lambda_l2 = 6, max_depth=16, min_gain_to_split=0.05, num_leaves = 114, min_data_in_leaf = 3, learning_rate=0.08),
+    "lgbr4" => LGBMRegressor(num_iterations=144, lambda_l1=37.8, lambda_l2=6.0, min_gain_to_split=0.05, min_data_in_leaf = 3, num_leaves=120, learning_rate=0.08, max_depth=31, bagging_fraction=0.505),
     "extra" => ExtraTreesRegressor(n_estimators=111), 
     "rr" => RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false),
     "linear" => LinearRegressor(),
@@ -45,7 +46,7 @@ function Regression(k, X_train, y_train, X_test, y_test, wholedata)
 
 
     # Training model
-    model = machine(palas_dict["nnr"], X_train, vec(Matrix(y_train)))
+    model = machine(palas_dict["rfr"], X_train, vec(Matrix(y_train)))
     MLJ.fit!(model, verbosity = 0)
     predict_train = MLJ.predict(model, X_train)
     predict_test = MLJ.predict(model, X_test)
@@ -61,11 +62,11 @@ function Regression(k, X_train, y_train, X_test, y_test, wholedata)
 
 
     #implement grid search
-    #GridSearch(NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,256,128,64), σ = Flux.elu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=3, rng=StableRNG(42)), X, y)
+    #GridSearch(RandomForestRegressor(max_depth=21, n_estimators=47), X, y)
 
     #Print r2, mse, and rmse values for test data
-    r2_score_test = round(r2_score(predict_train, Matrix(y_train)), digits=3)
-    println("train r2 value for " * k * " = " * string(r2_score_test))
+    #r2_score_test = round(r2_score(predict_train, Matrix(y_train)), digits=3)
+    #println("train r2 value for " * k * " = " * string(r2_score_test))
     r2_score_test = round(r2_score(predict_test, Matrix(y_test)), digits=3)
     println("test r2 value for " * k * " = " * string(r2_score_test))
     #mse_test = round(mse(predict_test, Matrix(y_test)), digits=3)
@@ -74,7 +75,7 @@ function Regression(k, X_train, y_train, X_test, y_test, wholedata)
     #println("test rmse value for " * k * " = " * string(rmse_test))
     
     # Calculating Feature Importance using the FeatureImportance Function from FeatureImportance.jl
-    #=
+    
     data_plot = FeatureImportance(wholedata, k, model)
     
     #copying the target variable name before changing latex Formatting
@@ -126,7 +127,7 @@ function Regression(k, X_train, y_train, X_test, y_test, wholedata)
     PlotScatter(y_train, y_test, predict_train, predict_test, k, kcopy)
     PlotQQ(y_test, predict_test, k, kcopy)
     PlotFeatureImportance(data_plot, k, kcopy)
-    =#
+    
 end
 
 
