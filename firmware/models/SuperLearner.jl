@@ -10,15 +10,11 @@ KNeighborsRegressor = @load KNeighborsRegressor pkg=MLJScikitLearnInterface verb
 function SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
 
     #palas_dictionary
-    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,164,128,92), σ = Flux.elu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=3, rng=StableRNG(42), lambda=10),
-    "nnr2" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(128,144,144,92), σ = Flux.elu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=32, batch_size=3, rng=StableRNG(42), lambda=10),
-    "dtr" => DecisionTreeRegressor(), 
-    "edtr" => EnsembleModel(model=DecisionTreeRegressor(), n=100, bagging_fraction=0.8), 
-    "rfr" => RandomForestRegressor(),
+    palas_dict = Dict("nnr" => NeuralNetworkRegressor(builder=MLJFlux.MLP(hidden=(80,132,112,80), σ = Flux.elu), optimiser=Flux.ADAM(0.001), loss=Flux.mse, epochs=30, batch_size=3, rng=StableRNG(42), lambda=10),
+    "rfr" => RandomForestRegressor(max_depth=21, n_estimators=47),
     "knnr" => KNeighborsRegressor(n_neighbors=8, weights="distance", metric="manhattan", leaf_size=5),
-    "lgbr" => LGBMRegressor(num_iterations=160, lambda_l1 = 85.3, lambda_l2 = 6.2, min_gain_to_split=0.05, num_leaves = 114, min_data_in_leaf = 3, learning_rate=0.08),
-    "extra" => ExtraTreesRegressor(n_estimators=111), 
-    "rr" => RidgeRegressor(lambda = 0.010000000000000004, scale_penalty_with_samples = false),
+    "lgbr4" => LGBMRegressor(num_iterations=144, lambda_l1 = 37.8, lambda_l2 = 6.0, min_gain_to_split=0.05, num_leaves = 120, min_data_in_leaf = 3, learning_rate=0.08, max_depth=31, bagging_fraction=0.505),
+    "lgbr10" => LGBMRegressor(num_iterations=140, lambda_l1 = 22, lambda_l2 = 6, min_gain_to_split=0.05, num_leaves = 114, min_data_in_leaf = 3, learning_rate=0.08, max_depth=16),
     )
     
     #defining stack
@@ -26,12 +22,9 @@ function SuperLearner(k, X_train, y_train, X_test, y_test, wholedata)
         resampling = CV(nfolds=5, shuffle=true, rng=123),
         measures=rsquared,
         nnr=palas_dict["nnr"],
-        nnr2=palas_dict["nnr2"],
-        dtr=palas_dict["dtr"],
-        edtr=palas_dict["edtr"],
         rfr=palas_dict["rfr"],    
-        lgbr=palas_dict["lgbr"],
-        extra=palas_dict["extra"]
+        lgbr4=palas_dict["lgbr4"],
+        lgbr10=palas_dict["lgbr10"]
         )
     
     # scale data
